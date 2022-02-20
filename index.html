@@ -23,8 +23,8 @@ registerProcessor("b", class {
       });
 
 `],{type:'text/javascript'}))).then(async () => {
-var node1 = new AudioWorkletNode(audioContext, 'a');
-var node2 = new AudioWorkletNode(audioContext, 'b');
+var node1 = new AudioWorkletNode(offctx, "a");
+var node2 = new AudioWorkletNode(offctx, "b");
         node1.port.onmessage = (e) => {
                 alert(e.data);
         }
