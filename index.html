@@ -2,8 +2,7 @@
 alert("Starting");
 let audioContext = new AudioContext();
 var offctx = new OfflineAudioContext(1,128,300000);
-offctx.audioWorklet.addModule(URL.createObjectURL(new Blob([`
-<script>
+offctx.audioWorklet.addModule(URL.createObjectURL(new Blob(['
 print("debug1");
 registerProcessor("a", class {
         constructor() {
@@ -22,8 +21,8 @@ registerProcessor("b", class {
           return {fill: 1, b: b0};
         }
       });
-</script> 
-`],{type:'text/html'}))).then(async () => {
+
+'],{type:'text/javascript'}))).then(async () => {
 var node1 = new AudioWorkletNode(audioContext, 'a');
 var node2 = new AudioWorkletNode(audioContext, 'b');
         node1.port.onmessage = (e) => {
