@@ -7,6 +7,7 @@ function gc() {
             new ArrayBuffer(0x1000000);
         }
 }
+
 let data_view = new DataView(new ArrayBuffer(8));
 var floatAsQword = float => {
     data_view.setFloat64(0, float, true);
