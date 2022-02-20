@@ -1,9 +1,10 @@
 <body></body>
 <pre id='log' style="font-size : 40px;"></pre>
 <script>
-if(document.location.protocol !== "https:") {
+/*if(document.location.protocol !== "https:") {
 	document.location.protocol = "https:"
 }
+*/
 
 function print(str) {
             var log = document.getElementById('log');
@@ -74,7 +75,7 @@ var leak = e.data;
                 
 for(var i = 0; i < leak.length; i ++){
     if(leak[i] != 0)
-    (`[${i}] : ` + floatAsQword(leak[i]).toString(16));
+    alert(`[${i}] : ` + floatAsQword(leak[i]).toString(16));
 }
 is_leak = false;
                 //await audioCtx.suspend(audioCtx.currentTime+ 0.01);
