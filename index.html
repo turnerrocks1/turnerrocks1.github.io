@@ -60,6 +60,7 @@ await sleep(500);
 let is_leak = true;
 originNode2.port.onmessage = async (e)=>{
     if(e.data == "retry"){
+	    alert("failed");
                     //print(e.data);
                     //await sleep(2000);
         location.reload();
@@ -67,7 +68,7 @@ originNode2.port.onmessage = async (e)=>{
     }
     if(!is_leak){
                     //console.log(e.data.toString(16));
-        print(e.data);
+        alert(e.data);
         return;
     }
                 
