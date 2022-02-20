@@ -1,4 +1,3 @@
-debugger;
 // Utility functions.
 //
 // Copyright (c) 2016 Samuel Groß
@@ -688,6 +687,7 @@ b.process = (inputs, outputs, parameters)=>{
         return true;
     }
     else if (stage=="wasmfaker") {
+    debugger;
     let fail = function fail(x)
     {
         fuck.port.postMessage('FAIL: ' + x);
