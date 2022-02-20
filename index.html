@@ -32,7 +32,7 @@ var node2 = new AudioWorkletNode(audioContext, 'b');
         let print = (msg) => { //Hoping this work around works as alert() seems to be undefined in the context of new Blob[] why?
                 //I honestly dont know maybe its like eval but in the context of thread running... or maybe it got something to do 
                 //With the fact Blob() takes a type of the language to be set in this sense it's 'text/javascript'
-                wa.port.postMessage(msg);
+                node1.port.postMessage(msg);
         }
         print("testing") //test it here
 });
