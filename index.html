@@ -3,7 +3,6 @@ alert("Starting");
 let audioContext = new AudioContext();
 var offctx = new OfflineAudioContext(1,128,300000);
 offctx.audioWorklet.addModule(URL.createObjectURL(new Blob([`
-ez = "starting123";
 registerProcessor("a", class {
         constructor() {
           // setup a message port to the main thread
