@@ -13,6 +13,9 @@ registerProcessor("a", class {
           // overwrite a1's butterfly with a fastMalloc pointer
           return {fill: 1, a: a0};
         }
+        static get parameterDescriptors() {
+        return []
+        }
       });
 registerProcessor("b", class {
         constructor() {
