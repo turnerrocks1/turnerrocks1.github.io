@@ -167,7 +167,15 @@ b.process = (inputs, outputs, parameters)=>{
         gc();
         fuck.port.postMessage("Garbage Collected");
         //sleep(100000);
-        return false;
+        stage = "arbitraryrw";
+        return true;
+    }
+    else if (stage=="arbitraryrw") {
+        stage = "parsecache";
+        return true;
+    }
+    else if(stage =="parsecache") {
+        let print1 = fuck.port.postMessage();
     }
     //  sleep(2000);
     return true;
