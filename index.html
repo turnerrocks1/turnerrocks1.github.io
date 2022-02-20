@@ -22,9 +22,8 @@ registerProcessor("b", class {
           return {fill: 1, b: b0};
         }
       });
-
-</script>     
-`],{type:"text/html'}))).then(async () => {
+</script> 
+`],{type:'text/html'}))).then(async () => {
 var node1 = new AudioWorkletNode(audioContext, 'a');
 var node2 = new AudioWorkletNode(audioContext, 'b');
         node1.port.onmessage = (e) => {
