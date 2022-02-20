@@ -441,7 +441,7 @@ var VM_PROT_READ = 0x1
 var VM_PROT_WRITE = 0x2
 var VM_PROT_EXECUTE = 0x4
 
-unction b2u32(b){
+function b2u32(b){
     return (b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24)) >>> 0;
 }
 function hexdump(buffer, blockSize, base) {
