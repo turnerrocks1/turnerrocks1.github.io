@@ -524,7 +524,12 @@ function gc() {
             new ArrayBuffer(0x1000000);
         }
 }
-
+onmessage = function(e) {
+  console.log('Message received from main script');
+  var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
+  console.log('Posting message back to main script');
+  postMessage(workerResult);
+};
 let data_view = new DataView(new ArrayBuffer(8));
 var floatAsQword = float => {
     data_view.setFloat64(0, float, true);
@@ -881,5 +886,6 @@ class OrigineWorklet2 extends AudioWorkletProcessor {
         return false;
     }
 }
+
 registerProcessor('OrigineWorklet', OrigineWorklet);
 registerProcessor('OrigineWorklet2', OrigineWorklet2);
