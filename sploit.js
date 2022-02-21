@@ -604,12 +604,12 @@ for(var i = 0; i < 0x10000; i++){
 b.process = (inputs, outputs, parameters)=>{
     //sa
     //
-    fuck.port.onmessage = function(e) {
+    /*fuck.port.onmessage = function(e) {
   //print1('Message received from main script');
   var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
   //fuck.port.postMessage('Posting message back to main script');
   alert(workerResult);
-};
+};*/
     fuck.port.postMessage("starting");
     
     if(stage == "leak"){
@@ -869,9 +869,9 @@ class OrigineWorklet2 extends AudioWorkletProcessor {
     constructor(){
         super();
         //console.log(c);
-        this.port.onmessage = (e)=>{
+        /*this.port.onmessage = (e)=>{
             alert(e);
-        }
+        }*/
         
         fuck = this;
         //fuck.port.postMessage(c);
