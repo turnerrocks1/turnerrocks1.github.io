@@ -1020,14 +1020,14 @@ b.process = (inputs, outputs, parameters)=>{
            uint64_t    cacheType;         //0x64      // 1 for development, 0 for optimized
        };*/
        
-       alert1("dyld cache header @" + hdr); //dyld_cache_header
+       print1("dyld cache header @" + hdr); //dyld_cache_header
         while(true)
         {
         /*FUCK THIS TEAM!!! Whole time header is just the Webcore header not the fucking shared cache header!!!! A whole year of struggling to get this update to work just to find out it's fucking wrong...*/
-        if(strcmp(memory.read(hdr, 0x10), "dyld_v1   arm64")) //cache header magic
+        if(strcmp(memory.read(hdr, 0x10), "dyld_v1   arm64"))) //cache header magic
         //webcore header magic...
         {
-            alert1(String.fromCharCode(...memory.read(hdr, 0x10)))
+            print1(String.fromCharCode(...memory.read(hdr, 0x10)))
             break;
         }
         hdr = Sub(hdr, 0x1000);
@@ -1040,7 +1040,7 @@ b.process = (inputs, outputs, parameters)=>{
         var base_seg = null;
         //alert("nsegs test" + memory.u32(hdr+0x18))
         var nsegs    = memory.u32(Add(hdr, 0x14));
-        alert1(nsegs + "nsegs")
+        print1(nsegs + "nsegs")
        // alert(memory.u32(hdr + 0x18) + "segment"+ nsegs*0x20 + "sets")
        //mapping cache
         
