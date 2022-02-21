@@ -119,12 +119,12 @@ function Int64(v) {
             if (v.startsWith('0x'))
                 v = v.substr(2);
             if (v.length % 2 == 1)
-                v = '0' + v;
+                v = "0" + v;
 
             var bigEndian = unhexlify(v, 8);
             bytes.set(Array.from(bigEndian).reverse());
             break;
-        case 'object':
+        case "object":
             if (v instanceof Int64) {
                 bytes.set(v.getBytes());
             } else {
@@ -1175,7 +1175,7 @@ b.process = (inputs, outputs, parameters)=>{
             //imgsarr[i].straddr = String.fromCharCode(...memory.read(mappedAddress(segs,imgsarr[i].addr1),0x60))
             imgsarr[i].name = String.fromCharCode(...memory.read(imgsarr[i].addr1,0x60))
             //imgsarr[i].addr1 = Sub(hdr, imgsarr[i].pathFileOffset);
-            var [name,...garbage] = imgsarr[i].name.split(""");
+            var [name,...garbage] = imgsarr[i].name.split(`"`);
             imgsarr[i].name = name;
             //alert1("lib : " + imgsarr[i].name + "@" + imgsarr[i].addr);
             alert1(" lib # " + (i + 1) + " : " + imgsarr[i].name + " @ " + imgsarr[i].addr);
