@@ -67,7 +67,7 @@ originNode2.port.onmessage = async (e)=>{
         location.reload();
         return;
     }
-    if(!is_leak1){
+    if(is_leak == 1){
                     //console.log(e.data.toString(16));
         print(e.data);
         return;
@@ -80,7 +80,7 @@ for(var i = 0; i < leak.length; i ++){
     print(`[${i}] : ` + floatAsQword(leak[i]).toString(16));
 }
 
-is_leak++;
+is_leak = 1;
 //print(e.data);
 
                 //await audioCtx.suspend(audioCtx.currentTime+ 0.01);
