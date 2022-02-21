@@ -58,6 +58,7 @@ let myArrayBuffer = audioCtx.createBuffer(1, 128, audioCtx.sampleRate);
 await sleep(500);
             //alert();
 var is_leak = true;
+var is_leak1 = false;
 originNode2.port.onmessage = async (e)=>{
     if(e.data == "retry"){
 	    print("failed");
@@ -66,7 +67,7 @@ originNode2.port.onmessage = async (e)=>{
         location.reload();
         return;
     }
-    if(!is_leak){
+    if(!is_leak1){
                     //console.log(e.data.toString(16));
         print(e.data);
         return;
@@ -80,7 +81,7 @@ for(var i = 0; i < leak.length; i ++){
 }
 
 is_leak = false;
-print(e.data);
+//print(e.data);
 
                 //await audioCtx.suspend(audioCtx.currentTime+ 0.01);
                 //console.log("suspend");
