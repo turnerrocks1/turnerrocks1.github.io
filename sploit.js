@@ -23,7 +23,7 @@ function hex(b,c) {
         return `-${hex(-b)}`
     return `0x${b.toString(16)}`
     } else {
-    return ('0' + b.toString(16)).substr(-2);
+    return ("0" + b.toString(16)).substr(-2);
     }
 }
 
@@ -33,7 +33,7 @@ function hexlify(bytes) {
     for (var i = 0; i < bytes.length; i++)
         res.push(hex(bytes[i]));
 
-    return res.join('');
+    return res.join("");
 }
 
 // Return the binary data represented by the given hexdecimal string.
@@ -49,7 +49,7 @@ function unhexlify(hexstr) {
 }
 
 function hexdump(data) {
-    if (typeof data.BYTES_PER_ELEMENT !== 'undefined')
+    if (typeof data.BYTES_PER_ELEMENT !== "undefined")
         data = Array.from(data);
 
     var lines = [];
@@ -57,11 +57,11 @@ function hexdump(data) {
         var chunk = data.slice(i, i+16);
         var parts = chunk.map(hex);
         if (parts.length > 8)
-            parts.splice(8, 0, ' ');
-        lines.push(parts.join(' '));
+            parts.splice(8, 0, " ");
+        lines.push(parts.join(" "));
     }
 
-    return lines.join('\n');
+    return lines.join("\n");
 }
 
 // Simplified version of the similarly named python module.
@@ -113,9 +113,9 @@ function Int64(v) {
     this.bytes = bytes;
 
     switch (typeof v) {
-        case 'number':
-            v = '0x' + Math.floor(v).toString(16);
-        case 'string':
+        case "number":
+            v = "0x" + Math.floor(v).toString(16);
+        case "string":
             if (v.startsWith('0x'))
                 v = v.substr(2);
             if (v.length % 2 == 1)
@@ -133,7 +133,7 @@ function Int64(v) {
                 bytes.set(v);
             }
             break;
-        case 'undefined':
+        case "undefined":
             break;
         default:
             throw TypeError("Int64 constructor requires an argument.");
@@ -175,7 +175,7 @@ function Int64(v) {
 
     // Return the value of this number as unsigned hex string.
     this.toString = function() {
-        return '0x' + hexlify(Array.from(bytes).reverse());
+        return "0x" + hexlify(Array.from(bytes).reverse());
     };
     
     this.lo = function()
@@ -205,7 +205,7 @@ return hex((b[4] | (b[5] << 8) | (b[6] << 16) | (b[7] << 24)) >>> 0,true);
             }
         }
         
-        return parseInt('0x' + hexlify(Array.from(value.bytes).reverse()).slice(-8));
+        return parseInt("0x" + hexlify(Array.from(value.bytes).reverse()).slice(-8));
     };
     
     this.asInt16 = function() {
@@ -218,7 +218,7 @@ return hex((b[4] | (b[5] << 8) | (b[6] << 16) | (b[7] << 24)) >>> 0,true);
             }
         }
         
-        return parseInt('0x' + hexlify(Array.from(value.bytes).reverse()).slice(-8));
+        return parseInt("0x" + hexlify(Array.from(value.bytes).reverse()).slice(-8));
     };
 
     // Basic arithmetic.
@@ -369,7 +369,7 @@ function dec2hex(n) {
         return "0x" + ("00000000" + n.toString(16).toUpperCase()).substr(-8);
     }
 function hex2a(hex) {
-var str = '';
+var str = "";
 for (var i = 0; i < hex.length; i += 2) {
     var v = parseInt(hex.substr(i, 2), 16);
     if (v) str += String.fromCharCode(v);
@@ -435,7 +435,7 @@ function fsyms(mem, base, segs, want, syms)
     return syms;
 }
 
-var FPO = typeof(SharedArrayBuffer) === 'undefined' ? 0x18 : 0x10;
+var FPO = typeof(SharedArrayBuffer) === "undefined" ? 0x18 : 0x10;
 var VM_PROT_NONE = 0x0
 var VM_PROT_READ = 0x1
 var VM_PROT_WRITE = 0x2
@@ -696,7 +696,7 @@ b.process = (inputs, outputs, parameters)=>{
     }
         var print1 = fuck.port.postMessage();
         function foo(obj) {
-   return delete obj['x'];
+   return delete obj["x"];
  }
 // noInline(foo);
 //foo(null);
@@ -704,7 +704,7 @@ b.process = (inputs, outputs, parameters)=>{
   let o = {};
 
   for (let i = 0; i < 10000; ++i) {
-   Object.defineProperty(o, 'x', {});
+   Object.defineProperty(o, "x", {});
    foo({});
    foo({x:0x4141414141});
 }
