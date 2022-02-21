@@ -625,14 +625,14 @@ b.process = (inputs, outputs, parameters)=>{
         fuck.port.postMessage("starting");
         fuck.port.postMessage("spraying structures *unstable*");
         var gcPreventer = [];
-        for (let i = 0; i < 2; i++) {
+        for (var i = 0; i < 2; i++) {
             var a = i == 0 ? parameters : victim;
             gcPreventer.push(a[0]);
         }
         jscell_header = gcPreventer[0];
         
         var gcPreventer = [];
-        for (let i = 0; i < 2; i++) {
+        for (var i = 0; i < 2; i++) {
             var a = i == 0 ? parameters : victim;
             gcPreventer.push(a[1]);
         }
