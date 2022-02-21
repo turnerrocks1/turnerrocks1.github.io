@@ -867,6 +867,7 @@ class OrigineWorklet2 extends AudioWorkletProcessor {
         super();
         //console.log(c);
         this.port.onmessage = (e)=>{
+            alert(e);
         }
         
         fuck = this;
