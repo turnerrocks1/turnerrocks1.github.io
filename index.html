@@ -57,7 +57,7 @@ let source = new AudioBufferSourceNode(audioCtx);
 let myArrayBuffer = audioCtx.createBuffer(1, 128, audioCtx.sampleRate);
 await sleep(500);
             //alert();
-let is_leak = true;
+var is_leak = true;
 originNode2.port.onmessage = async (e)=>{
     if(e.data == "retry"){
 	    print("failed");
