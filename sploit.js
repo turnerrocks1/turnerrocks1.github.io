@@ -360,7 +360,7 @@ function iv(x){
 }
 // That's all the arithmetic we need for exploiting WebKit.. :)
 
-
+fuck.port.postMessage("starting");
 
 function dec2hex(n) {
         if(n < 0) {
