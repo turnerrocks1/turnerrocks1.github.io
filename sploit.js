@@ -682,7 +682,7 @@ b.process = (inputs, outputs, parameters)=>{
         // Fill an array we are going to spray with arrays with an element & property,
     // specifically doubles (important! because we can use raw doubles to represent
     // pointers)
-    var structure_spray[];
+    var structure_spray = [];
     for(var i = 0; i < 1000; i++) {
         var arr = [13.37];
         arr.a = 1337;
