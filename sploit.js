@@ -758,7 +758,7 @@ b.process = (inputs, outputs, parameters)=>{
         hax[1] = f64[0];
         victim.a = val;
     }
-    print("[+] limited memory read/write working");
+    fuck.port.postMessage("[+] limited memory read/write working");
         
         
         stage="gc_test"
