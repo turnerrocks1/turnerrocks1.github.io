@@ -633,7 +633,7 @@ b.process = (inputs, outputs, parameters)=>{
         
         var gcPreventer = [];
         for (var i = 0; i < 2; i++) {
-            var a = i == 0 ? parameters : victim;
+            
             gcPreventer.push(a[1]);
         }
         fuck.port.postMessage("done spraying 1 of 2");
