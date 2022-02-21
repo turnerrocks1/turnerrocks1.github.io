@@ -32,7 +32,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 async function main(){
-
+debugger;
 let audioCtx = new OfflineAudioContext({numberOfChannels: 1, length: 0x100000, sampleRate: 44100});
             
 let outputBufferSrc = new ConvolverNode(audioCtx);
