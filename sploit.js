@@ -524,11 +524,11 @@ function gc() {
             new ArrayBuffer(0x1000000);
         }
 }
-onmessage = function(e) {
-  console.log('Message received from main script');
+fuck.port.onmessage = function(e) {
+  //print1('Message received from main script');
   var workerResult = 'Result: ' + (e.data[0] * e.data[1]);
-  console.log('Posting message back to main script');
-  postMessage(workerResult);
+  //fuck.port.postMessage('Posting message back to main script');
+  fuck.port.postMessage(workerResult);
 };
 let data_view = new DataView(new ArrayBuffer(8));
 var floatAsQword = float => {
