@@ -444,7 +444,7 @@ var VM_PROT_EXECUTE = 0x4
 function b2u32(b){
     return (b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24)) >>> 0;
 }
-function hexdump(buffer, blockSize, base) {
+function hexdump1(buffer, blockSize, base) {
     blockSize = blockSize || 16;
     var lines = [];
     var hex = "0123456789ABCDEF";
