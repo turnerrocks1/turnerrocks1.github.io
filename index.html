@@ -338,10 +338,10 @@ function iv(x){
           // constant added to double JSValues
           const kBoxedDoubleOffset = new Int64("0x0002000000000000");
           function boxDouble(d) {
-            return Add(d,kBoxedDoubleOffset);
+            return Add(new Int64(d),kBoxedDoubleOffset);
           }
           function unboxDouble(d) {
-            return Sub(d,kBoxedDoubleOffset);
+            return Sub(new Int64(d),kBoxedDoubleOffset);
           }
           // the structure ID is wrong, but we'll fix it :)
           let doubleArrayCellHeader = new Int64("0x0108230700000000").asJSValue();
@@ -395,8 +395,8 @@ function iv(x){
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
-              port.postMessage(dec2f(a1[i));
-              if (dec2f(a1[i]) == kSentinel) {
+              port.postMessage(dec2f(unboxedDouble(f2dec(a1[i])));
+              if (dec2f(unboxedDouble(f2dec(a1[i]))) == kSentinel) {
                 offset = i;
                 break;
               }
