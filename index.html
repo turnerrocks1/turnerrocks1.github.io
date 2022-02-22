@@ -111,7 +111,7 @@ var qwordAsFloat = qword => {
               return float2bigint(a1[offset],true);
             }
             fakeobj = (addr) => {
-              a1[offset] = bigint2float(addr);
+              a1[offset] = bigint2float(addr,true);
               return b1[0];
             }
 
