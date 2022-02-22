@@ -122,7 +122,8 @@ var qwordAsFloat = qword => {
 
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString(16));
-
+            port.postMessage(typeof(addr) +"vs"+typeof(0x10n))
+           
             let fakeArr = fakeobj(addr + 0x10n); //no way around this im forced to use bigint for fakeobj :(
 
             // subtract off the incref
