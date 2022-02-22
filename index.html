@@ -126,7 +126,7 @@ var qwordAsFloat = qword => {
             let fakeArr = fakeobj(addr + 0x10);
 
             // subtract off the incref
-            doubleArrayCellHeader = float2bigint(bigint2float(float2bigint(fakeArr[0]) - 0x1),true);
+            doubleArrayCellHeader = float2bigint(fakeArr[0],true) - 0x1);
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
 
             // fix broken cell header
