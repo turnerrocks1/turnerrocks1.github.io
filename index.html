@@ -17,7 +17,7 @@ var floatAsQword = float => {
     return low + (high * 0x100000000);
 }
 var qwordAsTagged = qword =>{
-    return qwordAsFloat( qword- 0x02000000000000);
+    return qwordAsFloat( qword- 0x0002000000000000);
 }
 var qwordAsFloat = qword => {
     data_view.setUint32(0, qword%0x100000000, true);
