@@ -17,15 +17,12 @@ function delay(ms = 1000){
 }*/
 
 // Return the hexadecimal representation of the given byte.
-function hex(b,c) {
-    if (c) {
-    if (b < 0)
-        return `-${hex(-b)}`
-    return `0x${b.toString(16)}`
-    } else {
-    return ("0" + b.toString(16)).substr(-2);
+function dec2hex(n) {
+        if(n < 0) {
+            n = 0xFFFFFFFF + n + 1;
+        }
+        return "0x" + ("00000000" + n.toString(16).toUpperCase()).substr(-8);
     }
-}
 
 // Return the hexadecimal representation of the given byte array.
 function hexlify(bytes) {
