@@ -349,7 +349,7 @@ function iv(x){
           let u = new Uint32Array(f.buffer);
           function f2dec(floatpoint) {
                 f[0] = floatpoint;
-                return (u32[1]*kBoxedDoubleOffset+u32[0]).toString(16);
+                return (u[1]*kBoxedDoubleOffset+u[0]).toString(16);
           }
           function dec2f(dec) {
                 u[0] = dec%kBoxedDoubleOffset;
