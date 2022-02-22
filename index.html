@@ -412,7 +412,7 @@ function iv(x){
               return float2bigint(a1[offset]);
             }
             fakeobj = (addr) => {
-              a1[offset] =  bigint2float(addr);
+              a1[offset] = addr;
               return b1[0];
             }
             let obj = {
