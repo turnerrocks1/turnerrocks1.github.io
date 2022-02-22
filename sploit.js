@@ -655,15 +655,15 @@ var process = () => {
 
               // TODO: rest of exploit goes here
 
-              fuck.port.postMessage("done!");
+              port.postMessage("done!");
           }
 
           registerProcessor("OrigineWorklet", class {
             constructor() {
               // setup a message port to the main thread
               var port = new AudioWorkletProcessor().port;
+              port.postMessage("hey");
               port.onmessage = pwn;
-              
               //fuck = this;
 
               // this part is magic
