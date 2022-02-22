@@ -56,11 +56,11 @@ function hexdump(data) {
         var chunk = data.slice(i, i+16);
         var parts = chunk.map(hex);
         if (parts.length > 8)
-            parts.splice(8, 0, " ");
-        lines.push(parts.join(" "));
+            parts.splice(8, 0, ' ');
+        lines.push(parts.join(' '));
     }
 
-    return lines.join("\n");
+    return lines.join('\n');
 }
 
 // Simplified version of the similarly named python module.
