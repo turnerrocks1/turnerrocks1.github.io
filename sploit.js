@@ -24,6 +24,8 @@ function dec2hex(n) {
         return "0x" + ("00000000" + n.toString(16).toUpperCase()).substr(-8);
     }
 
+var hex = dec2hex;
+
 // Return the hexadecimal representation of the given byte array.
 function hexlify(bytes) {
     var res = [];
