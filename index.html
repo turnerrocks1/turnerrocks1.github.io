@@ -413,7 +413,7 @@ function iv(x){
             }
             fakeobj = (addr) => {
               a1[offset] = addr;
-              return b1[0].asDouble();
+              return new Int64(b1[0]).asDouble();
             }
             port.postMessage("addrof and fakeobj done");
 var print = (msg) => {
