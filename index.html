@@ -60,35 +60,8 @@ await sleep(500);
 var is_leak = true;
 //var is_leak1 = false;
 originNode2.port.onmessage = async (e)=>{
-    if(e.data == "retry"){
-	    print("failed");
-                    //print(e.data);
-                    //await sleep(2000);
-        location.reload();
-        return;
-    }
-    if(!is_leak){
-                    //console.log(e.data.toString(16));
-        print(e.data);
-        return;
-    }
-                
-var leak = e.data;
-                
-for(var i = 0; i < leak.length; i ++){
-    if(leak[i] != 0)
-    print(`[${i}] : ` + floatAsQword(leak[i]).toString(16));
+	print(e.data);
 }
-is_leak = false;
-
-
-//print(e.data);
-
-                //await audioCtx.suspend(audioCtx.currentTime+ 0.01);
-                //console.log("suspend");
-}
-
-            //
 originNode.connect(audioCtx.destination);
             /*
             inputBufferSrc.connect(originNode)
