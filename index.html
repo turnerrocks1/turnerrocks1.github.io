@@ -34,7 +34,7 @@ var qwordAsFloat = qword => {
             return d - kBoxedDoubleOffset;
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = qwordAsTagged(0x0108230700000000);
+          let doubleArrayCellHeader = 0x0108230700000000;
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v) {
@@ -80,7 +80,7 @@ var qwordAsFloat = qword => {
               return;
             }
 
-            const kSentinel = qwordAsFloat(0x133700001337);
+            const kSentinel = 0x133700001337;
             let offset = -1;
 
             b1[0] = kSentinel;
