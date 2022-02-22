@@ -8,7 +8,7 @@
       async function start() {
         log("starting...")
         var context = new OfflineAudioContext(1, 128, 300000);
-        context.audioWorklet.addModule(URL.createObjectURL(new Blob(["
+        context.audioWorklet.addModule(URL.createObjectURL(new Blob([`
           function dec2hex(n) {
         if(n < 0) {
             n = 0xFFFFFFFF + n + 1;
@@ -588,7 +588,7 @@ var print = (msg) => {
               return {fill: 1, b: b0};
             }
           });
-        "], {type: "text/javascript"}))).then(async () => {
+        `], {type: "text/javascript"}))).then(async () => {
           var wa = new AudioWorkletNode(context, "a");
           var wb = new AudioWorkletNode(context, "b");
           wa.port.onmessage = (e) => { log(e.data); console.log(e.data) }
