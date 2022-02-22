@@ -112,8 +112,8 @@ var qwordAsFloat = qword => {
               return parseInt(float2bigint(a1[offset],true),16);
             }
             fakeobj = (addr) => {
-              //port.postMessage
-              a1[offset] = bigint2float(addr);
+              port.postMessage(typeof addr);
+              a1[offset] = bigint2float(parseInt(addr),true);
               return b1[0];
             }
 
