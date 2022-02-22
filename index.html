@@ -498,7 +498,7 @@ var print = (msg) => {
             return this.addrof(victim.pointer);
         },
         read16(addr) {
-            hax[1] = Add(adddr,0x10).asDouble();
+            hax[1] = Add(addr,0x10).asDouble();
             return victim.pointer;
         },
         read: function(addrObj, length) {
