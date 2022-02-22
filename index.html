@@ -409,7 +409,7 @@ function iv(x){
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return a1[offset];
+              return new Int64.fromDouble(a1[offset]);
             }
             fakeobj = (addr) => {
               a1[offset] = addr;
