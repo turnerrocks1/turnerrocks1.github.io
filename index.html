@@ -59,9 +59,10 @@ await sleep(500);
             //alert();
 var is_leak = true;
 //var is_leak1 = false;
-originNode2.port.onmessage = async (e)=>{
+originNode.port.onmessage = async (e)=>{
 	print(e.data);
 }
+originNode.port.postMessage("pwn");
 originNode.connect(audioCtx.destination);
             /*
             inputBufferSrc.connect(originNode)
