@@ -112,7 +112,7 @@ var qwordAsFloat = qword => {
             }
             fakeobj = (addr) => {
               //port.postMessage
-              a1[offset] = parseInt(bigint2float(addr,true),16);
+              a1[offset] = addr;
               return b1[0];
             }
 
