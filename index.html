@@ -26,14 +26,14 @@
 
               // overwrite a1's butterfly with a fastMalloc pointer
               gc()
-              return {fill: 1, a: a0};
+              return {fill: 1, a: [13.37]};
             }
           });
           registerProcessor("b", class {
             constructor() {
               // overwrite b1's butterfly with a fastMalloc pointer
               gc();
-              return {fill: 1, b: b0};
+              return {fill: 1, b: [13.37]};
             }
             
           });`], {type: "text/javascript"}))).then(async () => {
