@@ -47,8 +47,8 @@ var qwordAsFloat = qword => {
           }
           function bigint2float(v,set) {
             if(set) {
-            u[0] = v & 0xffffffff
-            u[1] = v >> 32;
+            u[0] = Number(v & 0xffffffff)
+            u[1] = Number(v >> 32);
             return f[0]
             }
             u[0] = Number(v & 0xffffffffn);
