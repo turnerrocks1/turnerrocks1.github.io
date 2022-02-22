@@ -109,8 +109,8 @@ var qwordAsFloat = qword => {
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              //return parseInt(float2bigint(a1[offset],true),16);
-              return float2bigint(a1[offset]);
+              return parseInt(float2bigint(a1[offset],true),16);
+              //return float2bigint(a1[offset]);
             }
             
             fakeobj = (addr) => {
