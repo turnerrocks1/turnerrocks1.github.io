@@ -90,10 +90,10 @@
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return dec2hex(float2bigint(a1[offset]));
+              return dec2hex(a1[offset]);
             }
             fakeobj = (addr) => {
-              a1[offset] = dec2hex(bigint2float(addr));
+              a1[offset] = bigint2float(addr);
               return b1[0];
             }
             port.postMessage("addrof and fakeobj done");
