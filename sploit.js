@@ -525,7 +525,7 @@ function gc() {
         }
 }
 
-process = () => {
+var process = () => {
           const kBoxedDoubleOffset = 0x0002000000000000n;
           function boxDouble(d) {
             return d + kBoxedDoubleOffset;
@@ -663,6 +663,7 @@ process = () => {
               // setup a message port to the main thread
               var port = new AudioWorkletProcessor().port;
               port.onmessage = pwn;
+              
               //fuck = this;
 
               // this part is magic
