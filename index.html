@@ -423,7 +423,7 @@ function iv(x){
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString(16));
 
-            let fakeArr = fakeobj(Add(addr,0x10));
+            /*let fakeArr = fakeobj(Add(addr,0x10));
 
             // subtract off the incref
             doubleArrayCellHeader = f2dec(fakeArr[0]) - 0x1n;
@@ -453,7 +453,7 @@ function iv(x){
             addrof = (val) => {
               b1[0] = val;
               return f2dec(a1[0]);
-            }
+            }*/
 
           
 var print = (msg) => {
