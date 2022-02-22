@@ -91,12 +91,13 @@ var qwordAsFloat = qword => {
               return;
             }
 
-            const kSentinel = 1333.337;
+            const kSentinel = 13.37;
             let offset = -1;
 
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
+              port.postMessage(a1[i])
               if (bigint2float(unboxDouble(float2bigint(a1[i]))) == kSentinel) {
                 offset = i;
                 break;
