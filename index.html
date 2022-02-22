@@ -34,7 +34,7 @@ var qwordAsFloat = qword => {
             return d - kBoxedDoubleOffset;
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = qwordasTagged(0x0108230700000000);
+          let doubleArrayCellHeader = qwordAsTagged(0x0108230700000000);
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v) {
@@ -86,7 +86,7 @@ var qwordAsFloat = qword => {
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
-              if (qwordAsFloat(qwordasTagged(a1[i])) == kSentinel) {
+              if (qwordAsFloat(qwordAsTagged(a1[i])) == kSentinel) {
               //qwordAsFloat
                 offset = i;
                 break;
@@ -100,15 +100,15 @@ var qwordAsFloat = qword => {
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return float2bigint(a1[offset]);
+              return floatAsQword(a1[offset]);
             }
             fakeobj = (addr) => {
-              a1[offset] = bigint2float(addr);
+              a1[offset] =qwordAsFloat(addr);
               return b1[0];
             }
 
             let obj = {
-              jsCellHeader: qwordasTagged(doubleArrayCellHeader),
+              jsCellHeader: qwordAsTagged(doubleArrayCellHeader),
               fakeButterfly: a0
             };
 
