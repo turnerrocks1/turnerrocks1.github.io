@@ -32,8 +32,8 @@ function delay(ms = 1000){
 function hex(b,c) {
     if (c) {
     if (b < 0)
-        return `-${hex(-b)}`
-    return `0x${b.toString(16)}`
+        return "-${hex(-b)}"
+    return "0x${b.toString(16)}"
     } else {
     return ('0' + b.toString(16)).substr(-2);
     }
