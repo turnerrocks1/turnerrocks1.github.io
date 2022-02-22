@@ -409,7 +409,7 @@ function iv(x){
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return new Int64(float2bigint(a1[offset]));
+              return float2bigint(a1[offset]);
             }
             fakeobj = (addr) => {
               a1[offset] = addr;
