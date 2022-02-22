@@ -409,10 +409,10 @@ function iv(x){
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return new Int64.fromDouble(a1[offset]);
+              return float2bigint(a1[offset]);
             }
             fakeobj = (addr) => {
-              a1[offset] = addr.asDouble();
+              a1[offset] = new Int64(addr).asDouble();
               return b1[0];
             }
             port.postMessage("addrof and fakeobj done");
