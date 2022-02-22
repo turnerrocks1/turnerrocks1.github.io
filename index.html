@@ -395,7 +395,7 @@ function iv(x){
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
-              port.postMessage(dec2f(unboxedDouble(f2dec(a1[i])));
+              port.postMessage(dec2f(unboxedDouble(f2dec(a1[i]))));
               if (dec2f(unboxedDouble(f2dec(a1[i]))) == kSentinel) {
                 offset = i;
                 break;
