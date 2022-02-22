@@ -675,10 +675,11 @@ process = () => {
           });
           registerProcessor("OrigineWorklet2", class {
             constructor() {
-                fuck = this;
+              fuck = this;
               // overwrite b1's butterfly with a fastMalloc pointer
               return {fill: 1, b: b0};
             }
           });
+    }
     process();
 
