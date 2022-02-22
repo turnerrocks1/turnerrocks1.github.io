@@ -9,7 +9,7 @@
         log("starting...")
         var context = new OfflineAudioContext(1, 128, 300000);
         context.audioWorklet.addModule(URL.createObjectURL(new Blob([`
-          function dec2hex(n) {
+       function dec2hex(n) {
         if(n < 0) {
             n = 0xFFFFFFFF + n + 1;
         }
@@ -37,21 +37,6 @@ function unhexlify(hexstr) {
     return bytes;
 }
 
-function hexdump(data) {
-    if (typeof data.BYTES_PER_ELEMENT !== 'undefined')
-        data = Array.from(data);
-
-    var lines = [];
-    for (var i = 0; i < data.length; i += 16) {
-        var chunk = data.slice(i, i+16);
-        var parts = chunk.map(hex);
-        if (parts.length > 8)
-            parts.splice(8, 0, ' ');
-        lines.push(parts.join(' '));
-    }
-
-    return lines.join('\n');
-}
 
 // Simplified version of the similarly named python module.
 var Struct = (function() {
