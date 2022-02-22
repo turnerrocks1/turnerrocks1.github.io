@@ -123,7 +123,7 @@ var qwordAsFloat = qword => {
               fakeButterfly: a0
             };
             let addr = addrof(obj);
-            port.postMessage("obj @ " + addr.toString(16));
+            port.postMessage("obj @ " + addr);
             port.postMessage(typeof(addr) +"vs"+typeof(0x10n))
            
             /*let fakeArr = fakeobj(addr + 0x10); //no way around this im forced to use bigint for fakeobj :(
