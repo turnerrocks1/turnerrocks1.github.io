@@ -40,7 +40,7 @@ var qwordAsFloat = qword => {
           function float2bigint(v,set) {
           if (set) {
           f[0] = v;
-          return (u[0] | u[1] << 32);
+          return "0x"+(u[0] | u[1] << 32).toString(16);
           }
             f[0] = v;
             return BigInt(u[0]) | (BigInt(u[1]) << 32n);
