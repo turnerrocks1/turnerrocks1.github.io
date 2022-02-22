@@ -525,7 +525,7 @@ function gc() {
         }
 }
 
-var process = () => {
+b.process = (inputs, outputs, parameters) => {
           const kBoxedDoubleOffset = 0x0002000000000000n;
           function boxDouble(d) {
             return d + kBoxedDoubleOffset;
@@ -673,6 +673,9 @@ var process = () => {
               // overwrite a1's butterfly with a fastMalloc pointer
               return {fill: 1, a: a0};
             }
+              process (inputs, outputs, parameters) {
+    return false
+  }
           });
           registerProcessor("OrigineWorklet2", class {
             constructor() {
@@ -680,7 +683,10 @@ var process = () => {
               // overwrite b1's butterfly with a fastMalloc pointer
               return {fill: 1, b: b0};
             }
+              process (inputs, outputs, parameters) {
+    return false
+  }
           });
     }
-    process();
+    //process();
 
