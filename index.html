@@ -18,7 +18,7 @@
             constructor() {
               // setup a message port to the main thread
               port = new AudioWorkletProcessor().port;
-              port.onmessage = pwn;
+              port.onmessage = gc;
 
               // this part is magic
               // put 0xfffe000000001337 in the fastMalloc heap to fake the butterfly sizes
