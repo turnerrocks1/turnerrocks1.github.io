@@ -682,8 +682,8 @@ var VM_PROT_EXECUTE = 0x4
               return {fill: 1, b: b0};
                 
             }
-            this.port.onmessage = (e.data) => {
-              var d = e.data;
+            div = (e) => {
+              var d = e;
               
           }
           });
