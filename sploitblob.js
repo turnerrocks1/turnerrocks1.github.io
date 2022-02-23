@@ -412,7 +412,7 @@ var VM_PROT_EXECUTE = 0x4
             return d - kBoxedDoubleOffset;
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = new Int64("0x0108200700001000").asJSValue();
+          let doubleArrayCellHeader = new Int64(0x0108230700000000).asJSValue();
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v,set) {
