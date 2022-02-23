@@ -508,7 +508,7 @@ var VM_PROT_EXECUTE = 0x4
             // fix broken cell header
             fakeArr[0] = bigint2float(doubleArrayCellHeader);
             // grab a real butterfly pointer
-            let doubleArrayButterfly = float2bigint(fakeArr[1]);
+            doubleArrayButterfly = float2bigint(fakeArr[1]);
             // fix other broken cell header
             obj.fakeButterfly = b0;
             fakeArr[0] = bigint2float(doubleArrayCellHeader);
