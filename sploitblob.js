@@ -404,7 +404,7 @@ var VM_PROT_WRITE = 0x2
 var VM_PROT_EXECUTE = 0x4
 
 // constant added to double JSValues
-          const kBoxedDoubleOffset = 0x0002000000000000n;
+          const kBoxedDoubleOffset = 0x0002000000000000;
           function boxDouble(d) {
             return d + kBoxedDoubleOffset;
           }
@@ -465,7 +465,7 @@ var VM_PROT_EXECUTE = 0x4
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
-              if (new Int64(new Int64.fromDouble(a1[i])).asDouble() == kSentinel) {
+              if (new Int64(Sub(new Int64.fromDouble(a1[i]),new Int64(0x0002000000000000))).asDouble() == kSentinel) {
                 offset = i;
                 break;
               }
