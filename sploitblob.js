@@ -465,6 +465,7 @@ var VM_PROT_EXECUTE = 0x4
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
+                port.postMessage(new Int64(Sub(new Int64.fromDouble(a1[i]),new Int64(0x0002000000000000))).asDouble())
               if (new Int64(Sub(new Int64.fromDouble(a1[i]),new Int64(0x0002000000000000))).asDouble() == kSentinel) {
                 offset = i;
                 break;
