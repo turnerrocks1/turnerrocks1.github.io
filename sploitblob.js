@@ -798,7 +798,7 @@ var VM_PROT_EXECUTE = 0x4
               gc();
 
               // TODO: rest of exploit goes here
-              arbrw();
+              //arbrw();
               port.postMessage("done!");
             } catch(e) { // send exception strings to main thread (for debugging)
               port.postMessage("Exception!!");
