@@ -682,7 +682,7 @@ var VM_PROT_EXECUTE = 0x4
               return {fill: 1, b: b0};
                 
             }
-            div = (e) => {
+            var div = (e) => {
               var d = e;
               
           }
