@@ -460,7 +460,7 @@ var VM_PROT_EXECUTE = 0x4
               port.postMessage("Failure on array length");
               return;
             }
-            const kSentinel = 13.37;
+            const kSentinel = 1333.337;
             let offset = -1;
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
