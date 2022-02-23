@@ -660,7 +660,7 @@ var VM_PROT_EXECUTE = 0x4
         while(true)
         {
         /*FUCK THIS TEAM!!! Whole time header is just the Webcore header not the fucking shared cache header!!!! A whole year of struggling to get this update to work just to find out it's fucking wrong...*/
-        if(strcmp(memory.read(hdr, new Int(0x10)), "dyld_v1   arm64")) //cache header magic
+        if(strcmp(memory.read(hdr, new Int64(0x10)), "dyld_v1   arm64")) //cache header magic
         //webcore header magic...
         {
             alert1(String.fromCharCode(...memory.read(hdr, new Int64(0x10))))
