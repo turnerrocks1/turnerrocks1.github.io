@@ -9,6 +9,27 @@
         log("starting...")
         var context = new OfflineAudioContext(1, 128, 300000);
         context.audioWorklet.addModule(URL.createObjectURL(new Blob([`
+        function delay(ms = 1000){
+    var t1 = Date.now();
+    while(Date.now() - t1 <= ms){
+
+    }
+}
+
+/*function print(s){
+    alert(s);
+}*/
+
+// Return the hexadecimal representation of the given byte.
+function hex(b,c) {
+    if (c) {
+    if (b < 0)
+        return `-${hex(-b)}`
+    return `0x${b.toString(16)}`
+    } else {
+    return ('0' + b.toString(16)).substr(-2);
+    }
+}
         function dec2hex(n) {
         if(n < 0) {
             n = 0xFFFFFFFF + n + 1;
