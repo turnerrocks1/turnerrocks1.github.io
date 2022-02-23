@@ -461,7 +461,7 @@ var VM_PROT_EXECUTE = 0x4
               return;
             }
             //const kSentinel = 1333.337;
-              var kSentinel = new Int64("0x1337").asDouble();
+              var kSentinel = 1333.337;
             let offset = -1;
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
