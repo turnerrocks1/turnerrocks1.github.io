@@ -647,6 +647,7 @@ b.process = (inputs, outputs, parameters)=>{
     //let memory.read_i64 = memory.read64;
      
     print("[+] arbitrary memory read/write working");
+	    return false;
     }
     //  sleep(2000);
     
