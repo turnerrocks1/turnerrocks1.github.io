@@ -485,6 +485,7 @@ var VM_PROT_EXECUTE = 0x4
               a1[offset] = new Int64(addr).asDouble();
               return b1[0];
             }
+            port.postMessage("obj @ " + addrof({}));
             /*hope we dont crash or have a gc from here on out...
             let obj = {
               jsCellHeader: bigint2float(unboxDouble(doubleArrayCellHeader)),
