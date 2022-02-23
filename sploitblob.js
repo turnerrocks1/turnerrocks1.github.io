@@ -1,7 +1,7 @@
 //
 // Utility functions.
 //
-// Copyright (c) 2016 Samuel Groß
+// Copyright (c) 2016 Samuel Groß 
 //
 
 // Display alert message
