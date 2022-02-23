@@ -509,7 +509,9 @@ var VM_PROT_EXECUTE = 0x4
           
 
           function arbrw() {
-              var print = port.postMessage;
+              var print = (msg) => {
+                  port.postMessage(msg)
+              };
               // from saelo: spray structures to be able to predict their IDs.
     // from Auxy: I am not sure about why spraying. i change the code to:
     //
