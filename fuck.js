@@ -547,7 +547,7 @@ b.process = (inputs, outputs, parameters)=>{
 	stage = "fakearray"
         return true;
     }
-    else if(stage == "fake array") {
+    else if(stage == "fakearray") {
 	      var print = (msg) => {
 		      fuck.port.postMessage(msg);
 	      }
