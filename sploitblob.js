@@ -27,7 +27,7 @@ function delay(ms = 1000){
 }
 
 function print(s){
-    alert(s);
+    port.postMessage(s);
 }
 
 // Return the hexadecimal representation of the given byte.
