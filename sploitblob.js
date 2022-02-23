@@ -516,7 +516,7 @@ var VM_PROT_EXECUTE = 0x4
               b1[0] = val;
               return new Int64.fromDouble(a1[0]);
             }
-            //port.postMessage("obj addr@ " + addrof({}))
+            port.postMessage("obj addr@ " + addrof(""))
               //gc();
             /*var rw = {
                 fake: function(addr) {
