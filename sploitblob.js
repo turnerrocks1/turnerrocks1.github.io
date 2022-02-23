@@ -576,8 +576,8 @@ var VM_PROT_EXECUTE = 0x4
             //continue;
         } else {
             while (!(hax instanceof Array)) {
-            flags_double_array.assignAdd(flags_double_array, Int64.One);
-            container.header = flags_double_array.asJSValue();
+            flags_double_array = Add(flags_double_array, Int64.One);
+            container.header = flags_double_array;
             maxtry++;
             if (maxtry == 100000)
             {
