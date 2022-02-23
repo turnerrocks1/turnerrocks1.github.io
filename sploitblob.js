@@ -486,7 +486,7 @@ var VM_PROT_EXECUTE = 0x4
               return b1[0];
             }
             let obj = {
-              jsCellHeader: doubleArrayCellHeader,
+              jsCellHeader: new Int64(doubleArrayCellHeader).asDouble(),
               fakeButterfly: a0
             };
             let addr = addrof(obj);
