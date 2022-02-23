@@ -668,7 +668,8 @@ var VM_PROT_EXECUTE = 0x4
         }
         hdr = Sub(hdr, 0x1000);
         }
-          }
+        log("dyld shared cache header @" + hdr);
+        }
           function pwn() {
             try {
               setupPrimitives();
