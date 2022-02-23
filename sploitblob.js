@@ -1,4 +1,4 @@
-/
+//
 // Utility functions.
 //
 // Copyright (c) 2016 Samuel Groß
