@@ -744,7 +744,7 @@ var VM_PROT_EXECUTE = 0x4
     }
     return target;
   }
-    var funcAddr = memory.addrof(func);
+    var funcAddr = memory.addrof(makeJITCompiledFunction());
     print("[+] JIT function @ " + funcAddr.toString());
     var executableAddr = memory.read64(Add(funcAddr, 3 * 8));
     print("[+] Executable instance @ " + executableAddr.toString());
