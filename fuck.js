@@ -247,7 +247,7 @@ for (var i = 0; i < 1000; ++i) {
             port.postMessage(hex1(jitcode));
             var rwx = stage2.read64(jitcode+0x20)
             port.postMessage(hex1(rwx))
-            stage2.write64(rwx,0x41414141)
+            stage2.write64((jitcode & 0xffffffff8),0x41414141)
             //stage2.write64(mathfunc,0x4141414141)
             Math.sin()
             /*while(!(port1.onmessage())) {
