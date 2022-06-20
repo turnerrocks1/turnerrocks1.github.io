@@ -154,7 +154,7 @@ function Int64(v) {
     // Return a double whith the same underlying bit representation.
     this.asDouble = function() {
         // Check for NaN
-        if (bytes[7] == 0xff && (bytes[6] == 0xfc || bytes[6] == 0xfc))
+        if (bytes[7] == 0xff && (bytes[6] == 0xff || bytes[6] == 0xfe))
             throw new RangeError("Integer can not be represented by a double");
 
         return Struct.unpack(Struct.float64, bytes);
@@ -164,16 +164,17 @@ function Int64(v) {
     // This is only possible for integers in the range [0x0001000000000000, 0xffff000000000000)
     // due to double conversion constraints.
     this.asJSValue = function() {
-        if ((bytes[7] == 0 && bytes[6] == 0) || (bytes[7] == 0xff && bytes[6] == 0xfe))
+        if ((bytes[7] == 0 && bytes[6] == 0) || (bytes[7] == 0xff && bytes[6] == 0xff))
             throw new RangeError("Integer can not be represented by a JSValue");
 
         // For NaN-boxing, JSC adds 2^48 to a double value's bit pattern.
-        this.assignSub(this, 0x2000000000000);
+        this.assignSub(this, 0x1000000000000);
         var res = Struct.unpack(Struct.float64, bytes);
-        this.assignAdd(this, 0x2000000000000);
+        this.assignAdd(this, 0x1000000000000);
 
         return res;
     };
+
 
     // Return the underlying bytes of this number as array.
     this.bytes = function() {
